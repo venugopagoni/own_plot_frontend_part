@@ -1,0 +1,4320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Own Your Plot — NexTex.ai</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --earth: #1a1208;
+    --clay: #8B5E3C;
+    --sand: #D4A96A;
+    --sage: #4A7C59;
+    --mint: #72B08A;
+    --cream: #F7F0E6;
+    --white: #FDFAF5;
+    --accent: #E8843A;
+    --accent-light: #F5A96A;
+    --dark-green: #1E3A2A;
+    --text-muted: #7A6A55;
+    --border: rgba(139,94,60,0.15);
+    --card-bg: rgba(247,240,230,0.6);
+    --glass: rgba(255,250,245,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--earth);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(26,18,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .logo-main {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: var(--sand);
+    letter-spacing: -0.02em;
+  }
+  .logo-sub {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; color: var(--sand); }
+
+  .nav-cta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn-outline {
+    padding: 9px 22px;
+    border: 1px solid var(--sand);
+    color: var(--sand);
+    background: transparent;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-outline:hover { background: var(--sand); color: var(--earth); }
+
+  .btn-primary {
+    padding: 9px 22px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 120px 60px 80px;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 80% 40%, rgba(74,124,89,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(139,94,60,0.2) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 60% 10%, rgba(212,169,106,0.08) 0%, transparent 50%),
+      linear-gradient(160deg, #1a1208 0%, #0f1a10 50%, #1a1208 100%);
+  }
+
+  /* Grid lines */
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(212,169,106,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212,169,106,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative;
+    max-width: 700px;
+    z-index: 2;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(232,132,58,0.12);
+    border: 1px solid rgba(232,132,58,0.3);
+    border-radius: 100px;
+    font-size: 0.78rem;
+    color: var(--accent-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 32px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero h1 .accent-word { color: var(--sand); }
+  .hero h1 .green-word { color: var(--mint); }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(247,240,230,0.65);
+    max-width: 560px;
+    margin-bottom: 40px;
+    font-weight: 300;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .btn-hero {
+    padding: 14px 32px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-hero:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(232,132,58,0.3); }
+
+  .btn-ghost {
+    padding: 14px 32px;
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid rgba(247,240,230,0.2);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-ghost:hover { border-color: var(--sand); color: var(--sand); }
+
+  .hero-stats {
+    position: absolute;
+    right: 60px;
+    bottom: 80px;
+    display: flex;
+    gap: 40px;
+    z-index: 2;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--sand);
+    line-height: 1;
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* Plot grid decorative */
+  .hero-visual {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 420px;
+    height: 380px;
+    z-index: 1;
+    opacity: 0.55;
+    animation: fadeIn 1.2s 0.5s ease both;
+  }
+  .plot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+  }
+  .plot-cell {
+    border: 1px solid rgba(212,169,106,0.25);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s;
+    animation: cellAppear 0.6s ease both;
+  }
+  .plot-cell.sold { background: rgba(74,124,89,0.3); border-color: rgba(114,176,138,0.5); }
+  .plot-cell.available { background: rgba(232,132,58,0.15); border-color: rgba(232,132,58,0.4); }
+  .plot-cell.premium { background: rgba(212,169,106,0.2); border-color: rgba(212,169,106,0.6); }
+  .plot-cell:hover { transform: scale(1.05); z-index: 2; }
+
+  .plot-label {
+    position: absolute;
+    top: 4px; left: 4px;
+    font-size: 0.55rem;
+    color: rgba(212,169,106,0.7);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── SECTION COMMON ── */
+  section { padding: 100px 60px; }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 16px;
+    padding: 5px 14px;
+    background: rgba(232,132,58,0.1);
+    border: 1px solid rgba(232,132,58,0.2);
+    border-radius: 100px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .section-title .hl { color: var(--sand); }
+  .section-desc {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(247,240,230,0.6);
+    font-weight: 300;
+    max-width: 560px;
+  }
+
+  /* ── PROBLEM SECTION ── */
+  .problem-section {
+    background: linear-gradient(180deg, var(--earth) 0%, #0d1510 100%);
+  }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    margin-top: 60px;
+  }
+  .problem-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .problem-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 24px 20px;
+    transition: all 0.3s;
+  }
+  .problem-card:hover { border-color: rgba(232,132,58,0.3); background: rgba(232,132,58,0.05); transform: translateY(-3px); }
+  .problem-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
+  .problem-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--cream);
+  }
+  .problem-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── FEATURES SECTION ── */
+  .features-section { background: #0d1510; }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 36px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s;
+    cursor: default;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(212,169,106,0.2);
+    background: rgba(212,169,106,0.04);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-card.highlighted {
+    background: rgba(74,124,89,0.08);
+    border-color: rgba(74,124,89,0.3);
+    grid-column: span 1;
+  }
+  .feature-icon-wrap {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    background: rgba(212,169,106,0.1);
+    border: 1px solid rgba(212,169,106,0.2);
+  }
+  .feature-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    color: var(--cream);
+  }
+  .feature-card p { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; }
+  .feature-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .tag {
+    padding: 3px 10px;
+    background: rgba(212,169,106,0.1);
+    border: 1px solid rgba(212,169,106,0.2);
+    border-radius: 100px;
+    font-size: 0.7rem;
+    color: var(--sand);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-section { background: var(--earth); }
+  .steps-row {
+    display: flex;
+    gap: 0;
+    margin-top: 60px;
+    position: relative;
+  }
+  .steps-row::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: 60px;
+    right: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
+  }
+  .step {
+    flex: 1;
+    text-align: center;
+    padding: 0 24px;
+    position: relative;
+  }
+  .step-num {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(26,18,8,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--sand);
+    margin: 0 auto 24px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .step:hover .step-num { background: var(--sand); color: var(--earth); transform: scale(1.1); }
+  .step h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--cream);
+  }
+  .step p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.65; }
+
+  /* ── USER TYPES ── */
+  /* ── WHO IT'S FOR — CARDS ── */
+  .users-section { background: #0d1510; }
+
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 60px;
+  }
+
+  /* Base card */
+  .user-card {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px 18px 24px;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                box-shadow 0.38s ease,
+                border-color 0.3s ease,
+                background 0.3s ease;
+    /* Stack context for pseudo-elements */
+    isolation: isolate;
+  }
+
+  /* Animated shimmer border — hidden by default */
+  .user-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 21px;
+    background: conic-gradient(
+      from var(--angle, 0deg),
+      transparent 0deg,
+      var(--card-color, var(--sand)) 60deg,
+      transparent 120deg
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    animation: rotateBorder 2.5s linear infinite paused;
+  }
+
+  /* Glow blob */
+  .user-card::after {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--card-color, var(--sand));
+    filter: blur(50px);
+    top: -30px; left: 50%; transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
+
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes rotateBorder {
+    to { --angle: 360deg; }
+  }
+
+  /* HOVER STATE — applies to ALL cards */
+  .user-card:hover {
+    transform: translateY(-10px) scale(1.04);
+    border-color: transparent;
+  }
+  .user-card:hover::before {
+    opacity: 1;
+    animation-play-state: running;
+  }
+  .user-card:hover::after { opacity: 0.18; }
+
+  /* Card content layers */
+  .card-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Crown label (hidden → shown on hover) */
+  .card-crown {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    padding: 3px 12px;
+    border-radius: 100px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.3s ease;
+    background: var(--card-color, var(--sand));
+    color: var(--earth);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .user-card:hover .card-crown {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Emoji */
+  .user-emoji {
+    font-size: 2.4rem;
+    display: block;
+    margin-bottom: 14px;
+    transition: transform 0.4s cubic-bezier(0.34,1.6,0.64,1);
+    filter: drop-shadow(0 0 0px transparent);
+  }
+  .user-card:hover .user-emoji {
+    transform: scale(1.25) translateY(-4px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.4));
+  }
+
+  /* Title */
+  .user-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 9px;
+    color: var(--cream);
+    transition: color 0.25s ease;
+  }
+  .user-card:hover h4 { color: var(--card-color, var(--sand)); }
+
+  /* Description */
+  .user-card p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    transition: color 0.25s ease;
+  }
+  .user-card:hover p { color: rgba(247,240,230,0.75); }
+
+  /* Perks list (hidden → revealed on hover) */
+  .card-perks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.35s ease, margin 0.3s ease;
+  }
+  .user-card:hover .card-perks {
+    max-height: 160px;
+    opacity: 1;
+    margin-top: 13px;
+  }
+  .card-perks li {
+    font-size: 0.74rem;
+    color: rgba(247,240,230,0.65);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .card-perks li:last-child { border-bottom: none; }
+
+  /* Badge */
+  .user-badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+  .badge-free    { background: rgba(74,124,89,0.18);   color: var(--mint);         border-color: rgba(74,124,89,0.3); }
+  .badge-premium { background: rgba(212,169,106,0.15); color: var(--sand);         border-color: rgba(212,169,106,0.3); }
+  .badge-dev     { background: rgba(232,132,58,0.15);  color: var(--accent-light); border-color: rgba(232,132,58,0.3); }
+  .badge-admin   { background: rgba(255,255,255,0.07); color: var(--cream);        border-color: rgba(255,255,255,0.15); }
+
+  /* On hover — badge glows with card colour */
+  .user-card:hover .user-badge {
+    background: var(--card-color, var(--sand));
+    color: var(--earth);
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+
+  /* ── INDIVIDUAL CARD COLOURS & SHADOWS ── */
+  .card-owner     { --card-color: #72B08A; }  /* mint-green  */
+  .card-buyer     { --card-color: #D4A96A; }  /* sand-gold   */
+  .card-developer { --card-color: #E8843A; }  /* terracotta  */
+  .card-premium   { --card-color: #C8A0E0; }  /* soft purple */
+  .card-admin     { --card-color: #6AABE8; }  /* sky blue    */
+
+  .card-owner:hover     { background: rgba(114,176,138,0.07);  box-shadow: 0 24px 60px rgba(114,176,138,0.15),  0 0 0 1px rgba(114,176,138,0.3); }
+  .card-buyer:hover     { background: rgba(212,169,106,0.07);  box-shadow: 0 24px 60px rgba(212,169,106,0.18),  0 0 0 1px rgba(212,169,106,0.35); }
+  .card-developer:hover { background: rgba(232,132,58,0.07);   box-shadow: 0 24px 60px rgba(232,132,58,0.15),   0 0 0 1px rgba(232,132,58,0.3); }
+  .card-premium:hover   { background: rgba(200,160,224,0.07);  box-shadow: 0 24px 60px rgba(200,160,224,0.15),  0 0 0 1px rgba(200,160,224,0.3); }
+  .card-admin:hover     { background: rgba(106,171,232,0.07);  box-shadow: 0 24px 60px rgba(106,171,232,0.15),  0 0 0 1px rgba(106,171,232,0.3); }
+
+  /* ── PRICING ── */
+  /* ── PRICING CARDS ── */
+  .pricing-section { background: var(--earth); }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 60px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Base card — same system as user cards */
+  .price-card {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px;
+    padding: 36px 28px 32px;
+    cursor: pointer;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      transform 0.38s cubic-bezier(0.34,1.4,0.64,1),
+      box-shadow 0.38s ease,
+      border-color 0.3s ease,
+      background 0.3s ease;
+  }
+
+  /* Spinning conic border */
+  .price-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 23px;
+    background: conic-gradient(
+      from var(--pangle, 0deg),
+      transparent 0deg,
+      var(--pc, #D4A96A) 60deg,
+      transparent 120deg
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    z-index: -1;
+    animation: priceRotate 2.8s linear infinite paused;
+  }
+
+  /* Glow blob */
+  .price-card::after {
+    content: '';
+    position: absolute;
+    width: 160px; height: 120px;
+    border-radius: 50%;
+    background: var(--pc, #D4A96A);
+    filter: blur(55px);
+    top: -30px; left: 50%; transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
+
+  @property --pangle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes priceRotate { to { --pangle: 360deg; } }
+
+  /* Hover — all 3 cards */
+  .price-card:hover {
+    transform: translateY(-12px) scale(1.03);
+    border-color: transparent;
+  }
+  .price-card:hover::before {
+    opacity: 1;
+    animation-play-state: running;
+  }
+  .price-card:hover::after { opacity: 0.16; }
+
+  /* Per-card colour tokens */
+  .price-basic     { --pc: #72B08A; }
+  .price-premium   { --pc: #D4A96A; }
+  .price-developer { --pc: #E8843A; }
+
+  .price-basic:hover     { background: rgba(114,176,138,0.07); box-shadow: 0 28px 70px rgba(114,176,138,0.18), 0 0 0 1px rgba(114,176,138,0.3); }
+  .price-premium:hover   { background: rgba(212,169,106,0.07); box-shadow: 0 28px 70px rgba(212,169,106,0.22), 0 0 0 1px rgba(212,169,106,0.35); }
+  .price-developer:hover { background: rgba(232,132,58,0.07);  box-shadow: 0 28px 70px rgba(232,132,58,0.18),  0 0 0 1px rgba(232,132,58,0.3); }
+
+  /* Popular badge */
+  .price-card.popular {
+    --pc: #D4A96A;
+    background: rgba(212,169,106,0.07);
+    border-color: rgba(212,169,106,0.3);
+    transform: scale(1.03);
+  }
+  .price-card.popular:hover { transform: translateY(-12px) scale(1.06); }
+
+  /* ── PREMIUM LOGO BADGE ── */
+  .premium-logo-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(212,169,106,0.15), rgba(74,124,89,0.12));
+    border: 1px solid rgba(212,169,106,0.35);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+    animation: plbShimmer 3s ease-in-out infinite;
+  }
+  .premium-logo-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(212,169,106,0.08), transparent);
+    background-size: 200% 100%;
+    animation: plbSweep 2.5s ease-in-out infinite;
+  }
+  @keyframes plbSweep {
+    0%   { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes plbShimmer {
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,169,106,0.2); }
+    50%      { box-shadow: 0 0 20px 4px rgba(212,169,106,0.18); }
+  }
+
+  .plb-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(212,169,106,0.5));
+    animation: plbFloat 2.5s ease-in-out infinite;
+  }
+  @keyframes plbFloat {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+
+  .plb-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .plb-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--sand);
+    letter-spacing: -0.01em;
+  }
+  .plb-sub {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mint);
+    margin-top: 1px;
+  }
+
+  /* Popular pill inside the card */
+  .popular-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    background: linear-gradient(90deg, var(--clay), var(--sand));
+    border-radius: 100px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--earth);
+    margin-bottom: 16px;
+    box-shadow: 0 3px 12px rgba(212,169,106,0.35);
+    animation: pillPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pillPulse {
+    0%,100% { box-shadow: 0 3px 12px rgba(212,169,106,0.3); }
+    50%      { box-shadow: 0 3px 22px rgba(212,169,106,0.6); }
+  }
+
+  /* Header */
+  .price-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    transition: color 0.25s;
+  }
+  .price-card:hover h3 { color: var(--pc); }
+
+  .price-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 5rem);
+    font-weight: 800;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 6px;
+    transition: color 0.25s;
+    letter-spacing: -0.02em;
+  }
+  .price-card:hover .price-amount { color: var(--pc); }
+  .price-amount span { font-size: 1.1rem; font-weight: 400; color: var(--text-muted); letter-spacing: 0; }
+
+  .price-period { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 26px; }
+  .price-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 22px; transition: background 0.3s; }
+  .price-card:hover .price-divider { background: rgba(255,255,255,0.12); }
+
+  /* Features list */
+  .price-features { list-style: none; margin-bottom: 28px; }
+  .price-features li {
+    padding: 6px 0;
+    font-size: 0.86rem;
+    color: rgba(247,240,230,0.65);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: color 0.25s, border-color 0.25s;
+  }
+  .price-features li:last-child { border-bottom: none; }
+  .price-card:hover .price-features li { color: rgba(247,240,230,0.85); border-color: rgba(255,255,255,0.07); }
+
+  .check  { color: var(--mint); font-size: 1rem; transition: color 0.25s; }
+  .x-mark { color: rgba(247,240,230,0.18); font-size: 1rem; }
+  .price-card:hover .check { color: var(--pc); }
+
+  /* CTA button */
+  .price-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+    transition: all 0.28s cubic-bezier(0.34,1.4,0.64,1);
+    letter-spacing: 0.01em;
+  }
+  .price-btn-outline {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--cream);
+  }
+  .price-card:hover .price-btn-outline {
+    background: var(--pc);
+    border-color: transparent;
+    color: var(--earth);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .price-btn-fill {
+    background: linear-gradient(135deg, var(--sage), var(--mint));
+    border: none;
+    color: var(--white);
+  }
+  .price-card:hover .price-btn-fill {
+    background: linear-gradient(135deg, var(--pc), color-mix(in srgb, var(--pc) 60%, white));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+  }
+
+  /* ── TRUST SECTION ── */
+  .trust-section {
+    background: #0d1510;
+    text-align: center;
+  }
+  .trust-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 32px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    min-width: 160px;
+    transition: all 0.3s;
+  }
+  .trust-item:hover { border-color: rgba(74,124,89,0.3); background: rgba(74,124,89,0.05); }
+  .trust-icon { font-size: 2rem; }
+  .trust-item span { font-size: 0.82rem; color: var(--text-muted); letter-spacing: 0.03em; }
+
+  /* ── SEARCH DEMO ── */
+  .search-section { background: var(--earth); }
+  .search-demo {
+    margin-top: 60px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 800px;
+  }
+  .search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .search-input {
+    flex: 1;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input::placeholder { color: var(--text-muted); }
+  .search-input:focus { border-color: var(--sand); }
+  .search-btn {
+    padding: 14px 24px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .search-btn:hover { background: var(--accent-light); }
+  .filter-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .filter-select {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A6A55' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.2s;
+  }
+  .filter-select:focus { border-color: var(--sand); }
+
+  /* ── LISTING CARDS ── */
+  .listings-section { background: #0d1510; }
+  .listings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+  .listing-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .listing-card:hover { transform: translateY(-5px); box-shadow: 0 24px 60px rgba(0,0,0,0.4); border-color: rgba(212,169,106,0.2); }
+  .listing-map {
+    height: 160px;
+    background: linear-gradient(135deg, #1a2e1c 0%, #0d1a10 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .map-placeholder {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    color: rgba(74,124,89,0.6);
+  }
+  .map-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(74,124,89,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74,124,89,0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .map-pin {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%,100% { transform: translate(-50%,-55%); } 50% { transform: translate(-50%,-45%); } }
+  .listing-status {
+    position: absolute;
+    top: 12px; left: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .status-available { background: rgba(74,124,89,0.8); color: var(--white); }
+  .status-premium { background: rgba(212,169,106,0.8); color: var(--earth); }
+  .listing-body { padding: 20px; }
+  .listing-survey {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .listing-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+  .listing-location {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .listing-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .listing-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--sand);
+  }
+  .listing-price small { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; font-family: 'DM Sans', sans-serif; display: block; }
+  .listing-size {
+    text-align: right;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .listing-size strong { color: var(--cream); font-size: 1rem; display: block; }
+
+  /* ── FUTURE SECTION ── */
+  .future-section { background: var(--earth); }
+  .future-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+  .future-item {
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: all 0.3s;
+  }
+  .future-item:hover { border-color: rgba(114,176,138,0.25); background: rgba(114,176,138,0.04); transform: translateX(4px); }
+  .future-icon { font-size: 2rem; flex-shrink: 0; }
+  .future-item h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .future-item p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.6; }
+  .coming-soon {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 10px;
+    background: rgba(74,124,89,0.15);
+    border: 1px solid rgba(74,124,89,0.25);
+    border-radius: 100px;
+    font-size: 0.68rem;
+    color: var(--mint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    background: linear-gradient(135deg, #1a2e1c 0%, #0d1a10 100%);
+    text-align: center;
+    padding: 120px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(74,124,89,0.15) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .cta-section .section-title { margin: 0 auto 16px; max-width: 600px; }
+  .cta-section .section-desc { margin: 0 auto 40px; text-align: center; }
+  .cta-actions { display: flex; justify-content: center; gap: 16px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--earth);
+    border-top: 1px solid var(--border);
+    padding: 60px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 50px;
+  }
+  .footer-brand p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 14px;
+    max-width: 280px;
+  }
+  .footer-col h5 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col ul li { margin-bottom: 10px; }
+  .footer-col ul a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+  }
+  .footer-col ul a:hover { color: var(--sand); }
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+  .footer-bottom p { font-size: 0.8rem; color: var(--text-muted); }
+  .footer-legal {
+    display: flex;
+    gap: 24px;
+  }
+  .footer-legal a { font-size: 0.8rem; color: var(--text-muted); text-decoration: none; }
+  .footer-legal a:hover { color: var(--cream); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 0.55; }
+  }
+  @keyframes cellAppear {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── NOTIFICATION BADGE ── */
+  .notification-demo {
+    position: absolute;
+    top: 24px; right: 24px;
+    background: rgba(232,132,58,0.9);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: slideIn 0.5s ease both, float 3s ease-in-out infinite 2s;
+    backdrop-filter: blur(10px);
+    max-width: 220px;
+    z-index: 5;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ── HERO SEARCH ── */
+  .hero-search-box {
+    margin-top: 36px;
+    background: rgba(255,250,245,0.06);
+    border: 1px solid rgba(212,169,106,0.22);
+    border-radius: 18px;
+    padding: 20px 22px;
+    backdrop-filter: blur(18px);
+    animation: fadeUp 0.8s 0.35s ease both;
+    max-width: 620px;
+  }
+
+  .hero-search-main {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .hero-search-input {
+    flex: 1;
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(212,169,106,0.2);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .hero-search-input::placeholder { color: rgba(212,169,106,0.45); }
+  .hero-search-input:focus {
+    border-color: var(--sand);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .hero-search-btn {
+    padding: 13px 22px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.22s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .hero-search-btn:hover {
+    background: var(--accent-light);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232,132,58,0.3);
+  }
+
+  .hero-search-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .hero-filter-select {
+    padding: 7px 30px 7px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,169,106,0.18);
+    border-radius: 8px;
+    color: rgba(247,240,230,0.75);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23D4A96A' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    transition: border-color 0.2s, background-color 0.2s;
+    flex: 1;
+    min-width: 110px;
+  }
+  .hero-filter-select:focus,
+  .hero-filter-select:hover {
+    border-color: rgba(212,169,106,0.45);
+    background-color: rgba(255,255,255,0.09);
+    color: var(--cream);
+  }
+
+  .hero-search-divider {
+    height: 1px;
+    background: rgba(212,169,106,0.12);
+    margin-bottom: 14px;
+  }
+
+  .hero-search-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .hero-quick-tags {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .quick-tag {
+    padding: 4px 12px;
+    background: rgba(212,169,106,0.08);
+    border: 1px solid rgba(212,169,106,0.18);
+    border-radius: 100px;
+    font-size: 0.72rem;
+    color: var(--sand);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .quick-tag:hover {
+    background: rgba(212,169,106,0.18);
+    border-color: var(--sand);
+    color: var(--cream);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--earth); }
+  ::-webkit-scrollbar-thumb { background: rgba(212,169,106,0.3); border-radius: 3px; }
+
+
+  /* ── ANIMATED STATEMENT ── */
+  .animated-statement {
+    position: relative;
+    min-height: 120px;
+    margin-bottom: 32px;
+  }
+
+  .stmt-problem {
+    font-size: 1.15rem;
+    line-height: 1.75;
+    color: rgba(247,240,230,0.82);
+    font-weight: 300;
+    max-width: 520px;
+    display: inline;
+  }
+
+  .stmt-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--sand);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 0.75s step-end infinite;
+    border-radius: 1px;
+  }
+
+  .stmt-solution {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px;
+    background: rgba(74,124,89,0.08);
+    border: 1px solid rgba(74,124,89,0.22);
+    border-radius: 14px;
+    min-height: 60px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    max-width: 520px;
+  }
+  .stmt-solution.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .solution-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .stmt-fix {
+    font-size: 0.97rem;
+    line-height: 1.65;
+    color: var(--mint);
+    font-weight: 400;
+    display: inline;
+  }
+
+  .stmt-cursor-green {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--mint);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 0.75s step-end infinite;
+    border-radius: 1px;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  /* highlight words as they type */
+  .stmt-problem .hl-word  { color: var(--sand); font-weight: 500; }
+  .stmt-problem .hl-bad   { color: #E06060; font-weight: 500; }
+
+
+
+  /* premium card styles now merged into .user-card system */
+
+
+  /* ════════════════════════════════════════════
+     AUTH GATE — Login / Register Modal
+  ════════════════════════════════════════════ */
+
+  /* Blur + lock the main site content */
+  #siteContent {
+    filter: blur(8px) brightness(0.4);
+    pointer-events: none;
+    user-select: none;
+    transition: filter 0.6s ease, opacity 0.6s ease;
+  }
+  #siteContent.unlocked {
+    filter: none;
+    pointer-events: all;
+    user-select: auto;
+  }
+
+  /* Full-screen auth overlay */
+  #authOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 8, 4, 0.82);
+    backdrop-filter: blur(6px);
+    padding: 20px;
+  }
+  #authOverlay.hidden { display: none; }
+
+  .auth-card {
+    background: linear-gradient(145deg, #1e1609 0%, #111b12 100%);
+    border: 1px solid rgba(212,169,106,0.25);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 440px;
+    padding: 44px 40px 36px;
+    position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,169,106,0.08);
+    animation: authCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes authCardIn {
+    from { opacity: 0; transform: scale(0.88) translateY(30px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Logo inside card */
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .auth-logo-main {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--sand);
+    letter-spacing: -0.02em;
+    display: block;
+  }
+  .auth-logo-sub {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .auth-logo-divider {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--sand), transparent);
+    margin: 12px auto 0;
+    border-radius: 2px;
+  }
+
+  /* Tab switcher */
+  .auth-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 9px;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.87rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.22s;
+    border: none;
+    background: transparent;
+  }
+  .auth-tab.active {
+    background: rgba(212,169,106,0.15);
+    color: var(--sand);
+    border: 1px solid rgba(212,169,106,0.25);
+  }
+
+  /* Form panels */
+  .auth-panel { display: none; }
+  .auth-panel.active { display: block; }
+
+  .auth-field {
+    margin-bottom: 16px;
+  }
+  .auth-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+  .auth-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+  }
+  .auth-input::placeholder { color: rgba(122,106,85,0.6); }
+  .auth-input:focus {
+    border-color: rgba(212,169,106,0.5);
+    background: rgba(255,255,255,0.08);
+  }
+
+  .auth-role-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .role-btn {
+    padding: 9px 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .role-btn.selected {
+    background: rgba(74,124,89,0.18);
+    border-color: rgba(74,124,89,0.4);
+    color: var(--mint);
+  }
+  .role-btn span { display: block; font-size: 1.1rem; margin-bottom: 3px; }
+
+  .auth-submit {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(90deg, var(--accent), #c96d28);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+  .auth-submit:hover {
+    background: linear-gradient(90deg, var(--accent-light), var(--accent));
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232,132,58,0.35);
+  }
+  .auth-submit:active { transform: translateY(0); }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .auth-guest-btn {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-guest-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--cream); }
+
+  .auth-error {
+    background: rgba(220,60,60,0.12);
+    border: 1px solid rgba(220,60,60,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #f08080;
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .auth-error.show { display: block; }
+
+  .auth-success-msg {
+    text-align: center;
+    padding: 8px 0 4px;
+    color: var(--mint);
+    font-size: 0.82rem;
+    display: none;
+  }
+
+  /* ════════════════════════════════════════════
+     SUBSCRIPTION NOTIFICATION TOAST
+  ════════════════════════════════════════════ */
+  #subNotif {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 88888;
+    width: 340px;
+    background: linear-gradient(145deg, #1e1a0e, #111e13);
+    border: 1px solid rgba(212,169,106,0.35);
+    border-radius: 18px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,169,106,0.07);
+    transform: translateY(120px);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.34,1.4,0.64,1), opacity 0.4s ease;
+    pointer-events: none;
+  }
+  #subNotif.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sub-notif-close {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .sub-notif-close:hover { color: var(--cream); }
+
+  .sub-notif-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, rgba(212,169,106,0.25), rgba(74,124,89,0.2));
+    border: 1px solid rgba(212,169,106,0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    animation: gentlePulse 2.5s ease-in-out infinite;
+  }
+  @keyframes gentlePulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,169,106,0.3); }
+    50%      { box-shadow: 0 0 0 8px rgba(212,169,106,0); }
+  }
+
+  .sub-notif-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sand);
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .sub-notif-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--cream);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .sub-notif-body {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+
+  .sub-notif-perks {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 16px;
+  }
+  .sub-perk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: rgba(247,240,230,0.65);
+  }
+  .sub-perk-dot {
+    width: 6px; height: 6px;
+    background: var(--mint);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sub-notif-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .sub-btn-main {
+    flex: 1;
+    padding: 10px;
+    background: linear-gradient(90deg, var(--sage), var(--mint));
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sub-btn-main:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .sub-btn-skip {
+    padding: 10px 14px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .sub-btn-skip:hover { color: var(--cream); border-color: rgba(255,255,255,0.2); }
+
+  /* User pill in nav when logged in */
+  .nav-user-pill {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 8px;
+    background: rgba(212,169,106,0.1);
+    border: 1px solid rgba(212,169,106,0.22);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-user-pill:hover { background: rgba(212,169,106,0.18); }
+  .nav-user-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--clay), var(--sage));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .nav-user-name {
+    font-size: 0.82rem;
+    color: var(--sand);
+    font-weight: 500;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav-user-plan {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    line-height: 1;
+  }
+
+  /* Loading spinner on submit */
+  .auth-spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Plan upgrade highlight in pricing after login */
+  .plan-upgrade-glow {
+    animation: planGlow 2s ease-in-out 3;
+  }
+  @keyframes planGlow {
+    0%,100% { box-shadow: none; }
+    50% { box-shadow: 0 0 30px rgba(74,124,89,0.4), 0 0 60px rgba(74,124,89,0.2); }
+  }
+
+
+  /* ════════ AUTH GATE & SUBSCRIPTION STYLES ════════ */
+
+  /* Site blurred behind overlay */
+  #siteContent {
+    filter: blur(5px) brightness(0.55) saturate(0.7);
+    pointer-events: none;
+    user-select: none;
+    transition: filter 0.7s ease, opacity 0.5s ease;
+    will-change: filter;
+  }
+  #siteContent.unlocked {
+    filter: none;
+    pointer-events: all;
+    user-select: auto;
+  }
+
+  /* Full-screen overlay — semi-transparent so site shows through */
+  #authOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99990;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(8,6,2,0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transition: opacity 0.5s ease;
+  }
+  #authOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Auth card */
+  .auth-card {
+    background: linear-gradient(150deg, rgba(28,20,8,0.97) 0%, rgba(14,24,15,0.97) 100%);
+    border: 1px solid rgba(212,169,106,0.3);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 420px;
+    padding: 38px 36px 30px;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(212,169,106,0.07),
+      0 30px 80px rgba(0,0,0,0.65),
+      0 0 60px rgba(74,124,89,0.06);
+    animation: authIn 0.55s cubic-bezier(0.34,1.5,0.64,1) both;
+    max-height: 92vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  @keyframes authIn {
+    from { opacity:0; transform: scale(0.9) translateY(24px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+
+  .auth-logo { text-align:center; margin-bottom:22px; }
+  .auth-logo-icon { font-size:2rem; display:block; margin-bottom:6px; }
+  .auth-logo-main {
+    font-family:'Syne',sans-serif;
+    font-weight:800;
+    font-size:1.5rem;
+    color:var(--sand);
+    letter-spacing:-0.02em;
+    display:block;
+  }
+  .auth-logo-sub {
+    font-size:0.62rem;
+    color:var(--text-muted);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    display:block;
+    margin-top:3px;
+  }
+  .auth-logo-divider {
+    width:36px; height:2px;
+    background:linear-gradient(90deg,transparent,var(--sand),transparent);
+    margin:12px auto 0;
+    border-radius:2px;
+  }
+
+  /* Tabs */
+  .auth-tabs {
+    display:flex;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:22px;
+    gap:4px;
+  }
+  .auth-tab {
+    flex:1;
+    padding:9px;
+    text-align:center;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    color:var(--text-muted);
+    border-radius:7px;
+    cursor:pointer;
+    border:1px solid transparent;
+    background:transparent;
+    transition:all 0.2s;
+  }
+  .auth-tab.active {
+    background:rgba(212,169,106,0.14);
+    color:var(--sand);
+    border-color:rgba(212,169,106,0.28);
+  }
+
+  /* Panels */
+  .auth-panel { display:none; }
+  .auth-panel.active { display:block; }
+
+  .auth-field { margin-bottom:14px; }
+  .auth-label {
+    display:block;
+    font-size:0.7rem;
+    color:var(--text-muted);
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+    font-weight:500;
+  }
+  .auth-input {
+    width:100%;
+    padding:11px 15px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px;
+    color:var(--cream);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.9rem;
+    outline:none;
+    transition:border-color 0.2s, background 0.2s;
+    box-sizing:border-box;
+  }
+  .auth-input::placeholder { color:rgba(122,106,85,0.55); }
+  .auth-input:focus {
+    border-color:rgba(212,169,106,0.5);
+    background:rgba(255,255,255,0.08);
+  }
+
+  /* Role buttons */
+  .auth-role-row {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:7px;
+  }
+  .role-btn {
+    padding:10px 6px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:9px;
+    color:var(--text-muted);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.76rem;
+    text-align:center;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .role-btn span { display:block; font-size:1.15rem; margin-bottom:4px; }
+  .role-btn.selected {
+    background:rgba(74,124,89,0.18);
+    border-color:rgba(74,124,89,0.45);
+    color:var(--mint);
+  }
+  .role-btn:hover { border-color:rgba(212,169,106,0.3); }
+
+  /* Submit button */
+  .auth-submit {
+    width:100%;
+    padding:13px;
+    background:linear-gradient(90deg, var(--accent) 0%, #c96228 100%);
+    color:var(--white);
+    border:none;
+    border-radius:10px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.93rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.25s;
+    margin-top:6px;
+    letter-spacing:0.01em;
+    position:relative;
+  }
+  .auth-submit:hover {
+    background:linear-gradient(90deg, var(--accent-light), var(--accent));
+    transform:translateY(-1px);
+    box-shadow:0 8px 24px rgba(232,132,58,0.35);
+  }
+  .auth-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+  .auth-divider {
+    display:flex; align-items:center; gap:10px;
+    margin:14px 0;
+    color:var(--text-muted);
+    font-size:0.72rem;
+  }
+  .auth-divider::before,.auth-divider::after {
+    content:''; flex:1; height:1px;
+    background:rgba(255,255,255,0.07);
+  }
+
+  .auth-guest-btn {
+    width:100%;
+    padding:10px;
+    background:transparent;
+    color:var(--text-muted);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:10px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .auth-guest-btn:hover { border-color:rgba(255,255,255,0.2); color:var(--cream); }
+
+  .auth-error {
+    background:rgba(220,60,60,0.12);
+    border:1px solid rgba(220,60,60,0.3);
+    border-radius:8px;
+    padding:9px 13px;
+    color:#f08888;
+    font-size:0.8rem;
+    margin-bottom:12px;
+    display:none;
+    line-height:1.5;
+  }
+  .auth-error.show { display:block; }
+
+  /* Spinner */
+  .auth-spinner {
+    display:inline-block;
+    width:13px; height:13px;
+    border:2px solid rgba(255,255,255,0.3);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    vertical-align:middle;
+    margin-right:6px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── SUBSCRIPTION TOAST ── */
+  #subNotif {
+    position:fixed;
+    bottom:24px; right:24px;
+    z-index:88888;
+    width:330px;
+    background:linear-gradient(145deg, rgba(26,18,8,0.98), rgba(14,24,15,0.98));
+    border:1px solid rgba(212,169,106,0.35);
+    border-radius:18px;
+    padding:22px 20px 18px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,169,106,0.07);
+    transform:translateY(130px) scale(0.95);
+    opacity:0;
+    transition:transform 0.55s cubic-bezier(0.34,1.4,0.64,1), opacity 0.4s ease;
+    pointer-events:none;
+  }
+  #subNotif.show {
+    transform:translateY(0) scale(1);
+    opacity:1;
+    pointer-events:all;
+  }
+  .sub-notif-close {
+    position:absolute; top:12px; right:14px;
+    background:none; border:none;
+    color:var(--text-muted); font-size:1rem;
+    cursor:pointer; line-height:1;
+    transition:color 0.2s;
+  }
+  .sub-notif-close:hover { color:var(--cream); }
+  .sub-notif-icon {
+    width:40px; height:40px;
+    background:linear-gradient(135deg,rgba(212,169,106,0.22),rgba(74,124,89,0.18));
+    border:1px solid rgba(212,169,106,0.28);
+    border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem;
+    margin-bottom:10px;
+    animation:subPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes subPulse {
+    0%,100% { box-shadow:0 0 0 0 rgba(212,169,106,0.3); }
+    50%      { box-shadow:0 0 0 7px rgba(212,169,106,0); }
+  }
+  .sub-notif-label {
+    font-size:0.63rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--sand);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .sub-notif-title {
+    font-family:'Syne',sans-serif;
+    font-weight:700;
+    font-size:0.98rem;
+    color:var(--cream);
+    margin-bottom:5px;
+    line-height:1.3;
+  }
+  .sub-notif-body {
+    font-size:0.78rem;
+    color:var(--text-muted);
+    line-height:1.55;
+    margin-bottom:14px;
+  }
+  .sub-notif-perks {
+    display:flex; flex-direction:column; gap:5px;
+    margin-bottom:15px;
+  }
+  .sub-perk {
+    display:flex; align-items:center; gap:8px;
+    font-size:0.76rem;
+    color:rgba(247,240,230,0.65);
+  }
+  .sub-perk-dot {
+    width:5px; height:5px;
+    background:var(--mint);
+    border-radius:50%; flex-shrink:0;
+  }
+  .sub-notif-actions { display:flex; gap:8px; }
+  .sub-btn-main {
+    flex:1; padding:10px;
+    background:linear-gradient(90deg,var(--sage),var(--mint));
+    color:var(--white); border:none; border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:600;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .sub-btn-main:hover { filter:brightness(1.12); transform:translateY(-1px); }
+  .sub-btn-skip {
+    padding:10px 12px;
+    background:transparent; color:var(--text-muted);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:0.8rem;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .sub-btn-skip:hover { color:var(--cream); border-color:rgba(255,255,255,0.2); }
+
+  /* Nav user pill after login */
+  .nav-user-pill {
+    display:flex; align-items:center; gap:8px;
+    padding:5px 13px 5px 7px;
+    background:rgba(212,169,106,0.1);
+    border:1px solid rgba(212,169,106,0.22);
+    border-radius:100px; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .nav-user-pill:hover { background:rgba(212,169,106,0.18); }
+  .nav-avatar {
+    width:27px; height:27px; border-radius:50%;
+    background:linear-gradient(135deg,var(--clay),var(--sage));
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.72rem; font-weight:700; color:var(--white); flex-shrink:0;
+  }
+  .nav-user-info { display:flex; flex-direction:column; line-height:1.2; }
+  .nav-user-name { font-size:0.8rem; color:var(--sand); font-weight:500; }
+  .nav-user-plan { font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
+
+  /* Guest banner */
+  #guestBanner {
+    position:fixed; top:72px; left:0; right:0; z-index:888;
+    background:linear-gradient(90deg,rgba(139,94,60,0.95),rgba(74,124,89,0.95));
+    padding:10px 60px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:0.82rem; color:var(--cream);
+    transform:translateY(-100%);
+    transition:transform 0.4s ease;
+    backdrop-filter:blur(10px);
+  }
+  #guestBanner.show { transform:translateY(0); }
+  .guest-banner-text { display:flex; align-items:center; gap:10px; }
+  .guest-banner-btns { display:flex; gap:10px; }
+  .gbtn {
+    padding:6px 16px; border-radius:6px;
+    font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:500;
+    cursor:pointer; border:none; transition:all 0.2s;
+  }
+  .gbtn-login { background:var(--sand); color:var(--earth); }
+  .gbtn-login:hover { background:var(--accent-light); }
+  .gbtn-close { background:transparent; color:rgba(247,240,230,0.6); border:1px solid rgba(255,255,255,0.2); }
+  .gbtn-close:hover { color:var(--cream); }
+
+
+  /* ── DEMO CREDENTIALS HINT ── */
+  .demo-hint {
+    background: rgba(212,169,106,0.07);
+    border: 1px solid rgba(212,169,106,0.2);
+    border-radius: 12px;
+    padding: 14px 14px 10px;
+    margin-bottom: 18px;
+  }
+  .demo-hint-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sand);
+    margin-bottom: 10px;
+  }
+  .demo-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .demo-row:hover {
+    background: rgba(212,169,106,0.12);
+    border-color: rgba(212,169,106,0.3);
+  }
+  .demo-role {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .buyer-role  { background: rgba(74,124,89,0.2);   color: var(--mint); border: 1px solid rgba(74,124,89,0.3); }
+  .owner-role  { background: rgba(212,169,106,0.15); color: var(--sand); border: 1px solid rgba(212,169,106,0.3); }
+  .admin-role  { background: rgba(232,132,58,0.15);  color: var(--accent-light); border: 1px solid rgba(232,132,58,0.3); }
+  .demo-email  { font-size: 0.78rem; color: rgba(247,240,230,0.7); flex: 1; font-family: monospace; }
+  .demo-fill-btn {
+    font-size: 0.7rem;
+    color: var(--sand);
+    font-weight: 600;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  .demo-row:hover .demo-fill-btn { opacity: 1; }
+  .demo-pass-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .demo-pass-note code {
+    background: rgba(255,255,255,0.07);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--cream);
+    font-size: 0.72rem;
+    font-family: monospace;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     AUTH OVERLAY  — fullscreen login/register gate
+══════════════════════════════════════════════ -->
+<div id="authOverlay">
+
+  <!-- blurred website is visible behind — overlay is semi-transparent -->
+  <div class="auth-card" id="authCard">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🏡</div>
+      <span class="auth-logo-main">Own Your Plot</span>
+      <span class="auth-logo-sub">by NexTex.ai · Broker-Free Real Estate</span>
+      <div class="auth-logo-divider"></div>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin"  onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab"        id="tabSignup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Error box -->
+    <div class="auth-error" id="authError"></div>
+
+    <!-- ── LOGIN PANEL ── -->
+    <div class="auth-panel active" id="panelLogin">
+
+      <!-- Demo credentials hint box -->
+      <div class="demo-hint">
+        <div class="demo-hint-title">🔑 Demo Credentials</div>
+        <div class="demo-rows">
+          <div class="demo-row" onclick="fillDemo('priya@example.com','Test@1234!')">
+            <span class="demo-role buyer-role">Buyer</span>
+            <span class="demo-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bbcbc9d2c2dafbdec3dad6cbd7de95d8d4d6">[email&#160;protected]</a></span>
+            <span class="demo-fill-btn">Use →</span>
+          </div>
+          <div class="demo-row" onclick="fillDemo('ravi@example.com','Test@1234!')">
+            <span class="demo-role owner-role">Owner</span>
+            <span class="demo-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="037162756a43667b626e736f662d606c6e">[email&#160;protected]</a></span>
+            <span class="demo-fill-btn">Use →</span>
+          </div>
+          <div class="demo-row" onclick="fillDemo('admin@ownplot.in','Test@1234!')">
+            <span class="demo-role admin-role">Admin</span>
+            <span class="demo-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6607020b0f0826091108160a0912480f08">[email&#160;protected]</a></span>
+            <span class="demo-fill-btn">Use →</span>
+          </div>
+        </div>
+        <div class="demo-pass-note">All passwords: <code>Test@1234!</code> · Or use any email + any password</div>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label">Email Address</label>
+        <input class="auth-input" type="email" id="loginEmail" placeholder="priya@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <div style="position:relative">
+          <input class="auth-input" type="password" id="loginPass" placeholder="Test@1234!" autocomplete="current-password" style="padding-right:44px">
+          <span onclick="togglePass('loginPass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-muted);font-size:1rem;user-select:none">👁</span>
+        </div>
+      </div>
+      <button class="auth-submit" id="loginBtn" onclick="doLogin()">
+          Sign In → demo@ownplot.in / demo1234
+        </button>
+        <p style="text-align:center;margin-top:8px;font-size:0.7rem;color:var(--text-muted);">
+          ✅ Fields pre-filled — just click Sign In
+        </p>
+      <div class="auth-divider">or</div>
+      <button class="auth-guest-btn" onclick="guestAccess()">👀 Browse as Guest (limited access)</button>
+    </div>
+
+    <!-- ── REGISTER PANEL ── -->
+    <div class="auth-panel" id="panelSignup">
+      <div class="auth-field">
+        <label class="auth-label">Full Name</label>
+        <input class="auth-input" type="text" id="regName" placeholder="Your full name">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Email Address</label>
+        <input class="auth-input" type="email" id="regEmail" placeholder="you@example.com">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Phone Number</label>
+        <input class="auth-input" type="tel" id="regPhone" placeholder="+91 98765 43210">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <div style="position:relative">
+          <input class="auth-input" type="password" id="regPass" placeholder="Min. 8 characters" style="padding-right:44px">
+          <span onclick="togglePass('regPass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-muted);font-size:1rem;user-select:none">👁</span>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">I am a…</label>
+        <div class="auth-role-row">
+          <div class="role-btn selected" data-role="buyer"     onclick="selectRole(this)"><span>🔍</span>Buyer</div>
+          <div class="role-btn"          data-role="owner"     onclick="selectRole(this)"><span>🏠</span>Owner</div>
+          <div class="role-btn"          data-role="developer" onclick="selectRole(this)"><span>🏗️</span>Developer</div>
+        </div>
+      </div>
+      <button class="auth-submit" id="regBtn" onclick="doRegister()">Create Free Account</button>
+      <div class="auth-divider">or</div>
+      <button class="auth-guest-btn" onclick="guestAccess()">👀 Browse as Guest (limited)</button>
+    </div>
+
+    <p style="text-align:center;margin-top:16px;font-size:0.72rem;color:var(--text-muted);line-height:1.5">
+      By continuing you agree to our <a href="#" style="color:var(--sand)">Terms</a> &amp; <a href="#" style="color:var(--sand)">Privacy Policy</a>.<br>
+      © 2026 NexTex.ai — IP of Venu Gopagoni &amp; Ankith Ganta
+    </p>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SUBSCRIPTION TOAST — shown after login
+══════════════════════════════════════════════ -->
+<div id="subNotif">
+  <button class="sub-notif-close" onclick="closeSubNotif()">✕</button>
+  <div class="sub-notif-icon">⭐</div>
+  <div class="sub-notif-label">Unlock Full Access</div>
+  <div class="sub-notif-title">Upgrade to Premium</div>
+  <div class="sub-notif-body">You're browsing on a free plan. Premium members get early plot alerts, GPS discovery & direct owner access.</div>
+  <div class="sub-notif-perks">
+    <div class="sub-perk"><span class="sub-perk-dot"></span>Early new listing notifications</div>
+    <div class="sub-perk"><span class="sub-perk-dot"></span>Unlimited plot search & filters</div>
+    <div class="sub-perk"><span class="sub-perk-dot"></span>Direct owner chat — no broker</div>
+    <div class="sub-perk"><span class="sub-perk-dot"></span>Ownership transfer support</div>
+  </div>
+  <div class="sub-notif-actions">
+    <button class="sub-btn-main" onclick="goToPricing()">Upgrade — ₹999/mo</button>
+    <button class="sub-btn-skip" onclick="closeSubNotif()">Maybe later</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SITE CONTENT — blurred until logged in
+══════════════════════════════════════════════ -->
+<div id="siteContent">
+
+<!-- Guest Banner -->
+<div id="guestBanner">
+  <div class="guest-banner-text">
+    <span>👀</span>
+    <span>You're browsing as a guest. <strong>Sign in</strong> to unlock full access, GPS discovery & owner contact.</span>
+  </div>
+  <div class="guest-banner-btns">
+    <button class="gbtn gbtn-login" onclick="location.reload()">Sign In / Register</button>
+    <button class="gbtn gbtn-close" onclick="this.closest('#guestBanner').classList.remove('show')">✕</button>
+  </div>
+</div>
+
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="logo">
+    <span class="logo-main">Own Your Plot</span>
+    <span class="logo-sub">by NexTex.ai</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#listings">Listings</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#future">Roadmap</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="#" class="btn-outline">Sign In</a>
+    <a href="#" class="btn-primary">List Your Plot →</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Broker-Free Real Estate · India
+    </div>
+    <h1>
+      Own Land.<br>
+      <span class="accent-word">Skip Brokers.</span><br>
+      <span class="green-word">Trust Data.</span>
+    </h1>
+    <p class="hero-desc">India's first survey-number-based real estate platform. Connect directly with owners, discover verified plots near you in real time, and transfer ownership transparently—no middlemen.</p>
+
+    <!-- ── HERO SEARCH BOX ── -->
+    <div class="hero-search-box">
+      <span class="hero-search-label">🔍 Find your land with precision</span>
+      <div class="hero-search-main">
+        <input
+          type="text"
+          class="hero-search-input"
+          id="heroSearchInput"
+          placeholder="Village, venture name, or survey number…"
+        >
+        <button class="hero-search-btn" onclick="heroSearch()">
+          Search <span>→</span>
+        </button>
+      </div>
+
+      <div class="hero-search-divider"></div>
+
+      <div class="hero-search-filters">
+        <select class="hero-filter-select" id="filterDistrict">
+          <option value="">All Districts</option>
+          <option>Rangareddy</option>
+          <option>Medchal</option>
+          <option>Nalgonda</option>
+          <option>Mahbubnagar</option>
+          <option>Hyderabad</option>
+          <option>Yadadri</option>
+        </select>
+        <select class="hero-filter-select" id="filterMandal">
+          <option value="">All Mandals</option>
+          <option>Shamshabad</option>
+          <option>Rajendranagar</option>
+          <option>Yadadri</option>
+          <option>Chevella</option>
+          <option>Manchal</option>
+          <option>Ibrahimpatnam</option>
+        </select>
+        <select class="hero-filter-select" id="filterBudget">
+          <option value="">Budget: Any</option>
+          <option value="0-1000000">Under ₹10L</option>
+          <option value="1000000-2500000">₹10L – ₹25L</option>
+          <option value="2500000-5000000">₹25L – ₹50L</option>
+          <option value="5000000-999999999">Above ₹50L</option>
+        </select>
+        <select class="hero-filter-select" id="filterSize">
+          <option value="">Size: Any</option>
+          <option value="0-100">Under 100 sq yds</option>
+          <option value="100-200">100 – 200 sq yds</option>
+          <option value="200-500">200 – 500 sq yds</option>
+          <option value="500-99999">500+ sq yds</option>
+        </select>
+        <select class="hero-filter-select" id="filterType">
+          <option value="">All Types</option>
+          <option value="standard">Standard</option>
+          <option value="premium">⭐ Premium</option>
+        </select>
+      </div>
+
+      <div class="hero-quick-tags">
+        <span class="quick-tag" onclick="quickSearch('Tukkuguda')">📍 Tukkuguda</span>
+        <span class="quick-tag" onclick="quickSearch('Shamshabad')">📍 Shamshabad</span>
+        <span class="quick-tag" onclick="quickSearch('Narsingi')">📍 Narsingi</span>
+        <span class="quick-tag" onclick="quickSearch('Chevella')">📍 Chevella</span>
+        <span class="quick-tag" onclick="quickSearch('Mucherla')">📍 Mucherla</span>
+        <span class="quick-tag" onclick="useGPS()">🛰️ Near Me</span>
+      </div>
+    </div>
+    <!-- ── END HERO SEARCH ── -->
+
+  </div>
+
+  <!-- Plot Grid Visual -->
+  <div class="hero-visual">
+    <div class="notification-demo">🔔 New plot listed in your area!</div>
+    <div class="plot-grid">
+      <div class="plot-cell sold" style="animation-delay:0.1s"><span class="plot-label">SN-12</span></div>
+      <div class="plot-cell" style="animation-delay:0.15s"><span class="plot-label">SN-13</span></div>
+      <div class="plot-cell available" style="animation-delay:0.2s"><span class="plot-label">SN-14</span></div>
+      <div class="plot-cell" style="animation-delay:0.25s"><span class="plot-label">SN-15</span></div>
+      <div class="plot-cell premium" style="animation-delay:0.3s"><span class="plot-label">SN-16</span></div>
+      <div class="plot-cell available" style="animation-delay:0.35s"><span class="plot-label">SN-21</span></div>
+      <div class="plot-cell sold" style="animation-delay:0.4s"><span class="plot-label">SN-22</span></div>
+      <div class="plot-cell" style="animation-delay:0.45s"><span class="plot-label">SN-23</span></div>
+      <div class="plot-cell sold" style="animation-delay:0.5s"><span class="plot-label">SN-24</span></div>
+      <div class="plot-cell available" style="animation-delay:0.55s"><span class="plot-label">SN-25</span></div>
+      <div class="plot-cell" style="animation-delay:0.6s"><span class="plot-label">SN-31</span></div>
+      <div class="plot-cell premium" style="animation-delay:0.65s"><span class="plot-label">SN-32</span></div>
+      <div class="plot-cell available" style="animation-delay:0.7s"><span class="plot-label">SN-33</span></div>
+      <div class="plot-cell" style="animation-delay:0.75s"><span class="plot-label">SN-34</span></div>
+      <div class="plot-cell sold" style="animation-delay:0.8s"><span class="plot-label">SN-35</span></div>
+      <div class="plot-cell available" style="animation-delay:0.85s"><span class="plot-label">SN-41</span></div>
+      <div class="plot-cell" style="animation-delay:0.9s"><span class="plot-label">SN-42</span></div>
+      <div class="plot-cell sold" style="animation-delay:0.95s"><span class="plot-label">SN-43</span></div>
+      <div class="plot-cell premium" style="animation-delay:1.0s"><span class="plot-label">SN-44</span></div>
+      <div class="plot-cell available" style="animation-delay:1.05s"><span class="plot-label">SN-45</span></div>
+    </div>
+    <!-- Legend -->
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:0.7rem;color:var(--text-muted);">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:rgba(74,124,89,0.5);border-radius:2px;display:inline-block;"></span>Sold</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:rgba(232,132,58,0.3);border-radius:2px;display:inline-block;"></span>Available</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:rgba(212,169,106,0.3);border-radius:2px;display:inline-block;"></span>Premium</span>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">0%</span>
+      <span class="stat-label">Broker Fee</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">SN</span>
+      <span class="stat-label">Survey Linked</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">GPS</span>
+      <span class="stat-label">Location Aware</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROBLEM ── -->
+<section class="problem-section reveal" id="problem">
+  <div class="section-tag">The Problem</div>
+  <div class="section-title">Indian real estate is <span class="hl">broken</span></div>
+  <div class="problem-grid">
+    <div>
+      <!-- Animated typewriter block -->
+      <div class="animated-statement" id="animStatement">
+        <p class="stmt-problem" id="stmtProblem"></p>
+        <span class="stmt-cursor" id="stmtCursor">|</span>
+      </div>
+      <div class="stmt-solution" id="stmtSolution">
+        <span class="solution-icon">⚡</span>
+        <p class="stmt-fix" id="stmtFix"></p>
+        <span class="stmt-cursor-green" id="stmtCursorGreen">|</span>
+      </div>
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card">
+        <span class="problem-icon">💸</span>
+        <h4>High Broker Commissions</h4>
+        <p>Brokers collect 1–3% of deal value from both parties, with no accountability.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">🗺️</span>
+        <h4>No Survey Clarity</h4>
+        <p>Plot boundaries and survey numbers are unclear, leading to disputes and delays.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">📄</span>
+        <h4>Fake Ownership Data</h4>
+        <p>Outdated and fraudulent ownership records cause financial losses for buyers.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">🚫</span>
+        <h4>No Direct Communication</h4>
+        <p>Owners and buyers have no way to connect directly without a middleman.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features-section reveal" id="features">
+  <div class="section-tag">Core Features</div>
+  <div class="section-title">Everything you need to <span class="hl">own land</span> with confidence</div>
+  <div class="features-grid">
+
+    <div class="feature-card highlighted">
+      <div class="feature-icon-wrap">📍</div>
+      <h3>GPS-Based Plot Discovery</h3>
+      <p>Automatically surface verified plots and ventures near you as you travel. Real-time location context shows what land exists around you—even in rural areas.</p>
+      <div class="feature-tags">
+        <span class="tag">GPS</span><span class="tag">Real-time</span><span class="tag">Offline Ready</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🔢</div>
+      <h3>Survey Number Identification</h3>
+      <p>Every plot is tagged to its exact survey number. Tap any point on the map to see the survey number, linked venture, and admin-verified ownership details.</p>
+      <div class="feature-tags">
+        <span class="tag">Verified</span><span class="tag">Survey-linked</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🏘️</div>
+      <h3>Venture Management</h3>
+      <p>Developers manage upcoming and launched ventures with full plot layout maps, survey numbers, village/mandal info, and pricing—all in one dashboard.</p>
+      <div class="feature-tags">
+        <span class="tag">Subscription</span><span class="tag">Developers</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🤝</div>
+      <h3>Broker-Free Listings</h3>
+      <p>List your plot with a map pin, exact dimensions, survey number, and price. Buyers contact you directly. No broker. A small transparent platform service fee.</p>
+      <div class="feature-tags">
+        <span class="tag">Direct</span><span class="tag">Transparent</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🔍</div>
+      <h3>Advanced Search & Filter</h3>
+      <p>Search by village, venture name, survey number, budget range, or plot size. All results are verified listings only—no spam, no fake ads.</p>
+      <div class="feature-tags">
+        <span class="tag">Multi-filter</span><span class="tag">Verified only</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🔔</div>
+      <h3>Premium Notifications</h3>
+      <p>Premium users get early alerts when a new plot in their preferred area or survey cluster is listed—before it goes public. Priority access guaranteed.</p>
+      <div class="feature-tags">
+        <span class="tag">Premium</span><span class="tag">Early access</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">✅</div>
+      <h3>Ownership Verification & Transfer</h3>
+      <p>New owners upload original documents for admin review. Once verified, ownership is updated on the platform—creating a trusted, timestamped record.</p>
+      <div class="feature-tags">
+        <span class="tag">Admin verified</span><span class="tag">Document upload</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">🛡️</div>
+      <h3>Trust & Compliance</h3>
+      <p>User reporting, legal disclaimers, and data protection policies are built in. Every listing and ownership claim goes through a structured verification workflow.</p>
+      <div class="feature-tags">
+        <span class="tag">Legal</span><span class="tag">Compliant</span>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap">💬</div>
+      <h3>Direct Buyer–Owner Chat</h3>
+      <p>Secure in-app messaging between verified buyers and owners. No phone numbers exposed publicly. All communication stays on-platform and recorded.</p>
+      <div class="feature-tags">
+        <span class="tag">Secure</span><span class="tag">Private</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section reveal" id="how">
+  <div class="section-tag">How It Works</div>
+  <div class="section-title">From land to <span class="hl">legal ownership</span> in 5 steps</div>
+  <div class="steps-row">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h4>Create Your Account</h4>
+      <p>Sign up as an owner, buyer, developer, or premium subscriber. KYC verification included.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h4>Search or List a Plot</h4>
+      <p>Buyers search by location, survey number, or budget. Owners list with a map pin and documents.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h4>Verify Ownership</h4>
+      <p>Admin reviews uploaded documents and links plot to survey number. Green badge issued.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <h4>Connect Directly</h4>
+      <p>Buyer contacts owner via secure in-app chat. No broker, no commission, just transparent communication.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">05</div>
+      <h4>Transfer Ownership</h4>
+      <p>New owner uploads registration proof. Admin verifies and updates platform ownership record.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── USER TYPES ── -->
+<section class="users-section reveal">
+  <div class="section-tag">Who It's For</div>
+  <div class="section-title">Built for every stakeholder in <span class="hl">Indian real estate</span></div>
+  <div class="users-grid">
+
+    <!-- 1. PLOT OWNERS -->
+    <div class="user-card card-owner">
+      <div class="card-crown">🏠 Land Owner</div>
+      <div class="card-inner">
+        <span class="user-emoji">🏠</span>
+        <h4>Plot Owners</h4>
+        <p>List, manage, and sell your land directly to verified buyers. No broker needed.</p>
+        <ul class="card-perks">
+          <li>📌 Pin your plot on the map</li>
+          <li>📋 Attach survey number & docs</li>
+          <li>💬 Chat directly with buyers</li>
+          <li>🔄 Ownership transfer support</li>
+        </ul>
+        <span class="user-badge badge-free">Free to List</span>
+      </div>
+    </div>
+
+    <!-- 2. BUYERS -->
+    <div class="user-card card-buyer">
+      <div class="card-crown">⭐ Most Popular</div>
+      <div class="card-inner">
+        <span class="user-emoji">🧑‍💼</span>
+        <h4>Buyers</h4>
+        <p>Discover verified plots near you and connect directly with owners before anyone else.</p>
+        <ul class="card-perks">
+          <li>📍 GPS-based plot discovery</li>
+          <li>🔔 Early new listing alerts</li>
+          <li>✅ Verified-only results</li>
+          <li>💬 Direct owner chat</li>
+        </ul>
+        <span class="user-badge badge-premium">⭐ Premium Access</span>
+      </div>
+    </div>
+
+    <!-- 3. DEVELOPERS -->
+    <div class="user-card card-developer">
+      <div class="card-crown">🏗️ Developer</div>
+      <div class="card-inner">
+        <span class="user-emoji">🏗️</span>
+        <h4>Developers</h4>
+        <p>Manage full ventures, publish layouts, and reach thousands of genuine buyers at scale.</p>
+        <ul class="card-perks">
+          <li>🗺️ Upload venture layouts</li>
+          <li>📊 Buyer lead dashboard</li>
+          <li>🔢 Bulk plot management</li>
+          <li>📈 Analytics & insights</li>
+        </ul>
+        <span class="user-badge badge-dev">Subscription</span>
+      </div>
+    </div>
+
+    <!-- 4. PREMIUM USERS -->
+    <div class="user-card card-premium">
+      <div class="card-crown">💎 Premium</div>
+      <div class="card-inner">
+        <span class="user-emoji">💎</span>
+        <h4>Premium Users</h4>
+        <p>Get priority access to listings, early alerts, and advanced search before the market.</p>
+        <ul class="card-perks">
+          <li>🚀 Priority listing access</li>
+          <li>🔔 Instant new-plot alerts</li>
+          <li>🔍 Advanced filter search</li>
+          <li>📞 Owner contact unlocked</li>
+        </ul>
+        <span class="user-badge badge-premium">₹999 / month</span>
+      </div>
+    </div>
+
+    <!-- 5. ADMINISTRATORS -->
+    <div class="user-card card-admin">
+      <div class="card-crown">🛡️ Admin</div>
+      <div class="card-inner">
+        <span class="user-emoji">🛡️</span>
+        <h4>Administrators</h4>
+        <p>Verify documents, approve listings, manage transfers and maintain platform trust.</p>
+        <ul class="card-perks">
+          <li>✅ Verify plot listings</li>
+          <li>📄 Review documents</li>
+          <li>🔄 Approve ownership transfers</li>
+          <li>📊 Full audit log access</li>
+        </ul>
+        <span class="user-badge badge-admin">Internal Team</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── SEARCH DEMO ── -->
+<!-- ── LISTINGS ── -->
+<section class="listings-section reveal" id="listings">
+  <div class="section-tag">Featured Listings</div>
+  <div class="section-title">Verified plots <span class="hl">available now</span></div>
+  <div class="listings-grid">
+
+    <div class="listing-card">
+      <div class="listing-map">
+        <div class="map-grid-lines"></div>
+        <div class="map-pin">📍</div>
+        <span class="listing-status status-available">Available</span>
+      </div>
+      <div class="listing-body">
+        <div class="listing-survey">Survey No. 142/B · Venture: Green Valley</div>
+        <div class="listing-name">Green Valley Plot A-12</div>
+        <div class="listing-location">📌 Tukkuguda, Rangareddy</div>
+        <div class="listing-meta">
+          <div class="listing-price">
+            ₹18.5L
+            <small>Negotiable</small>
+          </div>
+          <div class="listing-size">
+            <strong>150 sq yds</strong>
+            Corner Plot
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="listing-card">
+      <div class="listing-map">
+        <div class="map-grid-lines"></div>
+        <div class="map-pin">📍</div>
+        <span class="listing-status status-premium">⭐ Premium</span>
+      </div>
+      <div class="listing-body">
+        <div class="listing-survey">Survey No. 78/A · Venture: Sunrise Enclave</div>
+        <div class="listing-name">Sunrise Plot B-7</div>
+        <div class="listing-location">📌 Mucherla, Nalgonda</div>
+        <div class="listing-meta">
+          <div class="listing-price">
+            ₹32L
+            <small>Fixed Price</small>
+          </div>
+          <div class="listing-size">
+            <strong>200 sq yds</strong>
+            East Facing
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="listing-card">
+      <div class="listing-map">
+        <div class="map-grid-lines"></div>
+        <div class="map-pin">📍</div>
+        <span class="listing-status status-available">Available</span>
+      </div>
+      <div class="listing-body">
+        <div class="listing-survey">Survey No. 201/C · Individual Owner</div>
+        <div class="listing-name">Agricultural Plot · Direct Owner</div>
+        <div class="listing-location">📌 Chevella, Rangareddy</div>
+        <div class="listing-meta">
+          <div class="listing-price">
+            ₹8.2L
+            <small>Best offer</small>
+          </div>
+          <div class="listing-size">
+            <strong>300 sq yds</strong>
+            Open Plot
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="#" class="btn-ghost" style="padding:14px 40px;">View All Listings →</a>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="pricing-section reveal" id="pricing">
+  <div class="section-tag">Pricing</div>
+  <div class="section-title">Transparent plans. <span class="hl">No hidden commissions.</span></div>
+  <div class="pricing-grid">
+
+    <!-- BASIC -->
+    <div class="price-card price-basic" onmouseenter="priceHover(this,true)" onmouseleave="priceHover(this,false)">
+      <div class="price-glow-ring"></div>
+      <div class="price-inner">
+        <div class="price-crown">🌿 Free Forever</div>
+        <h3>Basic</h3>
+        <div class="price-amount">Free <span></span></div>
+        <div class="price-period">Get started at zero cost</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Browse all verified listings</li>
+          <li><span class="check">✓</span> GPS-based plot discovery</li>
+          <li><span class="check">✓</span> 1 active plot listing</li>
+          <li><span class="check">✓</span> Direct owner chat</li>
+          <li><span class="x-mark">✗</span> Early listing notifications</li>
+          <li><span class="x-mark">✗</span> Priority placement</li>
+        </ul>
+        <a href="#" class="price-btn price-btn-outline">Get Started Free</a>
+      </div>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="price-card price-premium popular" onmouseenter="priceHover(this,true)" onmouseleave="priceHover(this,false)">
+      <div class="price-glow-ring"></div>
+      <div class="price-inner">
+
+        <!-- Premium Logo Badge at the very top -->
+        <div class="premium-logo-badge">
+          <div class="plb-icon">💎</div>
+          <div class="plb-text">
+            <span class="plb-title">Own Your Plot</span>
+            <span class="plb-sub">Premium Pack</span>
+          </div>
+        </div>
+
+        <!-- Most Popular pill below logo -->
+        <div class="popular-pill">⭐ Most Popular · Best Value</div>
+
+        <h3>Premium</h3>
+        <div class="price-amount">₹999 <span>/mo</span></div>
+        <div class="price-period">For serious buyers &amp; sellers</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Everything in Basic</li>
+          <li><span class="check">✓</span> Early new-plot alerts</li>
+          <li><span class="check">✓</span> Unlimited listings</li>
+          <li><span class="check">✓</span> Priority search placement</li>
+          <li><span class="check">✓</span> Survey number lookup</li>
+          <li><span class="check">✓</span> Ownership transfer support</li>
+        </ul>
+        <a href="#" class="price-btn price-btn-fill">Start Premium →</a>
+      </div>
+    </div>
+
+    <!-- DEVELOPER -->
+    <div class="price-card price-developer" onmouseenter="priceHover(this,true)" onmouseleave="priceHover(this,false)">
+      <div class="price-glow-ring"></div>
+      <div class="price-inner">
+        <div class="price-crown">🏗️ For Builders</div>
+        <h3>Developer</h3>
+        <div class="price-amount">₹4,999 <span>/mo</span></div>
+        <div class="price-period">For real estate ventures</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Venture management portal</li>
+          <li><span class="check">✓</span> Bulk plot upload</li>
+          <li><span class="check">✓</span> Layout &amp; map publishing</li>
+          <li><span class="check">✓</span> Buyer lead dashboard</li>
+          <li><span class="check">✓</span> Analytics &amp; insights</li>
+          <li><span class="check">✓</span> Dedicated support</li>
+        </ul>
+        <a href="#" class="price-btn price-btn-outline">Contact Sales →</a>
+      </div>
+    </div>
+
+  </div>
+  <p style="text-align:center;margin-top:28px;font-size:0.82rem;color:var(--text-muted);">Ownership transfer verification: ₹499 per transfer · All prices include GST</p>
+</section>
+
+<!-- ── TRUST ── -->
+<section class="trust-section reveal">
+  <div class="section-tag">Trust & Compliance</div>
+  <div class="section-title">Built on <span class="hl">verified data</span></div>
+  <div class="trust-row">
+    <div class="trust-item">
+      <span class="trust-icon">📋</span>
+      <span>Document Verification</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🔒</span>
+      <span>Data Protection</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">⚖️</span>
+      <span>Legal Disclaimers</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🚩</span>
+      <span>User Reporting</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🛡️</span>
+      <span>Admin Oversight</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">📜</span>
+      <span>IP Protected Platform</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── FUTURE ── -->
+<section class="future-section reveal" id="future">
+  <div class="section-tag">Roadmap</div>
+  <div class="section-title">What's coming <span class="hl">next</span></div>
+  <div class="future-items">
+    <div class="future-item">
+      <span class="future-icon">🏛️</span>
+      <div>
+        <h4>Government Land Record Integration</h4>
+        <p>Direct sync with Telangana & AP land records (Dharani, MeeSeva) for real-time ownership verification.</p>
+        <span class="coming-soon">Coming 2026</span>
+      </div>
+    </div>
+    <div class="future-item">
+      <span class="future-icon">⚖️</span>
+      <div>
+        <h4>Legal Service Partnerships</h4>
+        <p>In-app access to verified property lawyers for registration, documentation, and dispute resolution.</p>
+        <span class="coming-soon">Coming 2026</span>
+      </div>
+    </div>
+    <div class="future-item">
+      <span class="future-icon">🤖</span>
+      <div>
+        <h4>AI-Based Land Analytics</h4>
+        <p>Predictive pricing, growth zone identification, and investment scoring powered by machine learning.</p>
+        <span class="coming-soon">In Development</span>
+      </div>
+    </div>
+    <div class="future-item">
+      <span class="future-icon">🗺️</span>
+      <div>
+        <h4>Multi-State Expansion</h4>
+        <p>Expanding beyond Telangana to Karnataka, Tamil Nadu, Maharashtra, and other high-growth states.</p>
+        <span class="coming-soon">2027</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section reveal">
+  <div class="section-tag" style="margin:0 auto 20px;">Start Today</div>
+  <div class="section-title" style="max-width:600px;margin:0 auto 16px;">Ready to <span class="hl">own your plot</span> the right way?</div>
+  <p class="section-desc" style="text-align:center;margin:0 auto 40px;">Join thousands of plot owners and buyers across Telangana using India's most transparent land platform.</p>
+  <div class="cta-actions">
+    <a href="#" class="btn-hero">List Your Plot Free →</a>
+    <a href="#" class="btn-ghost">Explore Plots Near Me 📍</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">
+        <span class="logo-main">Own Your Plot</span>
+        <span class="logo-sub">by NexTex.ai</span>
+      </div>
+      <p>India's broker-free, survey-number-based real estate platform. Connecting land owners and buyers directly since 2026.</p>
+      <p style="margin-top:12px;font-size:0.75rem;color:rgba(122,106,85,0.6);">© 2026 NexTex.ai — Venu Gopagoni & Ankith Ganta.<br>All rights reserved. Protected under Indian Copyright Law.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Platform</h5>
+      <ul>
+        <li><a href="#">Browse Listings</a></li>
+        <li><a href="#">List Your Plot</a></li>
+        <li><a href="#">Venture Portal</a></li>
+        <li><a href="#">Survey Number Lookup</a></li>
+        <li><a href="#">Ownership Transfer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="#">About NexTex.ai</a></li>
+        <li><a href="#">How It Works</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Roadmap</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Legal</h5>
+      <ul>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Disclaimer</a></li>
+        <li><a href="#">IP Statement</a></li>
+        <li><a href="#">Report a Listing</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Proudly built in India 🇮🇳 — Solving real estate for Bharat</p>
+    <div class="footer-legal">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">IP Policy</a>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ═══════════════════════════════════════════════════════════
+   OWN YOUR PLOT — Complete Auth + Subscription System
+   NexTex.ai | Venu Gopagoni & Ankith Ganta
+═══════════════════════════════════════════════════════════ */
+
+// ── DEMO USER DATABASE ─────────────────────────────────────
+const DEMO_USERS = {
+  'demo@ownplot.in':      { id:99, name:'Demo User',            role:'buyer',     plan:'free',      pw:'demo1234'    },
+  'admin@ownplot.in':     { id:1,  name:'Platform Admin',       role:'admin',     plan:'developer', pw:'Test@1234!'  },
+  'priya@example.com':    { id:5,  name:'Priya Sharma',         role:'buyer',     plan:'premium',   pw:'Test@1234!'  },
+  'ravi@example.com':     { id:2,  name:'Ravi Kumar',           role:'owner',     plan:'premium',   pw:'Test@1234!'  },
+  'suresh@example.com':   { id:3,  name:'Suresh Babu',          role:'owner',     plan:'free',      pw:'Test@1234!'  },
+  'greendev@example.com': { id:8,  name:'GreenCity Developers', role:'developer', plan:'developer', pw:'Test@1234!'  },
+  'kiran@example.com':    { id:6,  name:'Kiran Kumar',          role:'buyer',     plan:'free',      pw:'Test@1234!'  },
+};
+
+// ── SESSION STORE ──────────────────────────────────────────
+const OYP = {
+  currentUser: null,
+  selectedRole: 'buyer',
+  save(user) {
+    try { localStorage.setItem('oyp_user', JSON.stringify(user)); } catch(e){}
+    this.currentUser = user;
+  },
+  load() {
+    try {
+      const u = localStorage.getItem('oyp_user');
+      if (u) { this.currentUser = JSON.parse(u); return true; }
+    } catch(e){}
+    return false;
+  },
+  clear() {
+    try { localStorage.removeItem('oyp_user'); } catch(e){}
+    this.currentUser = null;
+  }
+};
+
+// ── WAIT FOR DOM ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ── 1. CHECK EXISTING SESSION ──────────────────────────
+  if (OYP.load() && OYP.currentUser) {
+    hideOverlay();
+    updateNav(OYP.currentUser);
+    if (OYP.currentUser.plan === 'free') setTimeout(showSubNotif, 3000);
+    return;
+  }
+
+  // ── 2. PRE-FILL DEMO CREDENTIALS ──────────────────────
+  const emailEl = document.getElementById('loginEmail');
+  const passEl  = document.getElementById('loginPass');
+  if (emailEl) emailEl.value = 'demo@ownplot.in';
+  if (passEl)  passEl.value  = 'demo1234';
+
+  // Pulse the fields gold after 500ms
+  setTimeout(function() {
+    [emailEl, passEl].forEach(function(el) {
+      if (!el) return;
+      el.style.borderColor = 'rgba(212,169,106,0.7)';
+      el.style.background  = 'rgba(212,169,106,0.1)';
+      el.style.transition  = 'all 0.4s ease';
+    });
+    setTimeout(function() {
+      [emailEl, passEl].forEach(function(el) {
+        if (!el) return;
+        el.style.borderColor = '';
+        el.style.background  = '';
+      });
+    }, 1600);
+  }, 500);
+
+});
+
+// ── HIDE OVERLAY ───────────────────────────────────────────
+function hideOverlay() {
+  var overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  overlay.style.opacity    = '0';
+  overlay.style.transition = 'opacity 0.5s ease';
+  overlay.style.pointerEvents = 'none';
+  setTimeout(function() { overlay.style.display = 'none'; }, 500);
+  var sc = document.getElementById('siteContent');
+  if (sc) sc.classList.add('unlocked');
+}
+
+// ── LOGIN ──────────────────────────────────────────────────
+function doLogin() {
+  clearErr();
+  var email = (document.getElementById('loginEmail').value || '').trim().toLowerCase();
+  var pass  = (document.getElementById('loginPass').value  || '').trim();
+
+  if (!email || !pass) { showErr('Please enter email and password.'); return; }
+
+  setBtnLoading('loginBtn', true);
+
+  // Small delay for UX feel
+  setTimeout(function() {
+
+    // Check demo users
+    var demo = DEMO_USERS[email];
+    if (demo) {
+      if (demo.pw !== pass) {
+        setBtnLoading('loginBtn', false);
+        showErr('Wrong password for ' + email + '. Try: ' + demo.pw);
+        return;
+      }
+      var user = { id: demo.id, name: demo.name, email: email, role: demo.role, plan: demo.plan };
+      OYP.save(user);
+      setBtnLoading('loginBtn', false);
+      unlockSite(user);
+      return;
+    }
+
+    // Generic — any valid email + 6+ char password works
+    var emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+    if (!emailValid) { setBtnLoading('loginBtn', false); showErr('Enter a valid email address.'); return; }
+    if (pass.length < 6) { setBtnLoading('loginBtn', false); showErr('Password must be at least 6 characters.'); return; }
+
+    var namePart = email.split('@')[0]
+      .replace(/[._-]/g, ' ')
+      .split(' ').map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+
+    var user = { id: Math.floor(Math.random()*9000)+100, name: namePart, email: email, role: 'buyer', plan: 'free' };
+    OYP.save(user);
+    setBtnLoading('loginBtn', false);
+    unlockSite(user);
+
+  }, 600);
+}
+
+// ── REGISTER ───────────────────────────────────────────────
+function doRegister() {
+  clearErr();
+  var name  = (document.getElementById('regName').value  || '').trim();
+  var email = (document.getElementById('regEmail').value || '').trim().toLowerCase();
+  var pass  = (document.getElementById('regPass').value  || '').trim();
+
+  if (!name)  { showErr('Please enter your full name.'); return; }
+  if (!email) { showErr('Please enter your email.'); return; }
+  var emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+  if (!emailValid) { showErr('Enter a valid email address.'); return; }
+  if (!pass || pass.length < 6) { showErr('Password must be at least 6 characters.'); return; }
+
+  setBtnLoading('regBtn', true);
+  setTimeout(function() {
+    var user = { id: Math.floor(Math.random()*9000)+100, name: name, email: email, role: OYP.selectedRole, plan: 'free' };
+    OYP.save(user);
+    setBtnLoading('regBtn', false);
+    unlockSite(user);
+  }, 700);
+}
+
+// ── UNLOCK SITE ────────────────────────────────────────────
+function unlockSite(user) {
+  hideOverlay();
+  var banner = document.getElementById('guestBanner');
+  if (banner) banner.classList.remove('show');
+  updateNav(user);
+  if (user && user.plan === 'free') {
+    setTimeout(showSubNotif, 2500);
+  }
+}
+
+// ── GUEST ACCESS ───────────────────────────────────────────
+function guestAccess() {
+  hideOverlay();
+  var banner = document.getElementById('guestBanner');
+  if (banner) banner.classList.add('show');
+  setTimeout(showSubNotif, 1500);
+}
+
+// ── LOGOUT ─────────────────────────────────────────────────
+function doLogout() {
+  OYP.clear();
+  location.reload();
+}
+
+// ── NAV UPDATE ─────────────────────────────────────────────
+function updateNav(user) {
+  var navCta = document.querySelector('.nav-cta');
+  if (!navCta || !user) return;
+  var initials = user.name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  navCta.innerHTML =
+    '<div class="nav-user-pill" onclick="goToPricing()">' +
+      '<div class="nav-avatar">' + initials + '</div>' +
+      '<div class="nav-user-info">' +
+        '<span class="nav-user-name">' + user.name.split(' ')[0] + '</span>' +
+        '<span class="nav-user-plan">' + (user.plan === 'free' ? 'Free Plan' : '⭐ ' + user.plan) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<button class="btn-primary" onclick="doLogout()" style="font-size:0.78rem;padding:7px 16px">Sign Out</button>';
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function showErr(msg) {
+  var el = document.getElementById('authError');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 4000);
+}
+function clearErr() {
+  var el = document.getElementById('authError');
+  if (el) el.classList.remove('show');
+}
+function setBtnLoading(id, loading) {
+  var btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.innerHTML = '<span class="auth-spinner"></span>Signing in…';
+  } else {
+    btn.innerHTML = id === 'loginBtn'
+      ? 'Sign In → demo@ownplot.in / demo1234'
+      : 'Create Account';
+  }
+}
+function togglePass(inputId, icon) {
+  var inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; icon.textContent = '🙈'; }
+  else { inp.type = 'password'; icon.textContent = '👁'; }
+}
+function switchTab(tab) {
+  clearErr();
+  document.getElementById('tabLogin').classList.toggle('active',  tab === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', tab !== 'login');
+  document.getElementById('panelLogin').classList.toggle('active',  tab === 'login');
+  document.getElementById('panelSignup').classList.toggle('active', tab !== 'login');
+}
+function selectRole(el) {
+  document.querySelectorAll('.role-btn').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+  OYP.selectedRole = el.dataset.role;
+}
+function fillDemo(email, pass) {
+  var emailEl = document.getElementById('loginEmail');
+  var passEl  = document.getElementById('loginPass');
+  if (emailEl) emailEl.value = email;
+  if (passEl)  passEl.value  = pass;
+  clearErr();
+  // Flash gold
+  [emailEl, passEl].forEach(function(el){
+    if (!el) return;
+    el.style.borderColor = 'rgba(212,169,106,0.7)';
+    el.style.background  = 'rgba(212,169,106,0.1)';
+    setTimeout(function(){ el.style.borderColor=''; el.style.background=''; }, 1000);
+  });
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  var overlay = document.getElementById('authOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  var loginActive = document.getElementById('panelLogin') &&
+                    document.getElementById('panelLogin').classList.contains('active');
+  loginActive ? doLogin() : doRegister();
+});
+
+// ── SUBSCRIPTION TOAST ─────────────────────────────────────
+function showSubNotif() {
+  var el = document.getElementById('subNotif');
+  if (el) el.classList.add('show');
+}
+function closeSubNotif() {
+  var el = document.getElementById('subNotif');
+  if (el) el.classList.remove('show');
+}
+function goToPricing() {
+  closeSubNotif();
+  var pricing = document.getElementById('pricing');
+  if (pricing) {
+    pricing.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(function() {
+      var popular = document.querySelector('.price-card.popular');
+      if (popular) {
+        popular.style.transition = 'box-shadow 0.4s';
+        popular.style.boxShadow  = '0 0 0 3px var(--mint), 0 0 40px rgba(74,124,89,0.4)';
+        setTimeout(function(){ popular.style.boxShadow = ''; }, 2500);
+      }
+    }, 700);
+  }
+}
+
+// ── NAV SCROLL ─────────────────────────────────────────────
+window.addEventListener('scroll', function() {
+  var nav = document.querySelector('nav');
+  if (nav) nav.style.background = window.scrollY > 60 ? 'rgba(26,18,8,0.97)' : 'rgba(26,18,8,0.85)';
+});
+
+// ── SCROLL REVEAL ──────────────────────────────────────────
+var revealObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e){ if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(function(el){ revealObs.observe(el); });
+
+// ── HERO SEARCH ────────────────────────────────────────────
+function heroSearch() {
+  var q        = (document.getElementById('heroSearchInput') || {}).value || '';
+  var district = (document.getElementById('filterDistrict') || {}).value || '';
+  var mandal   = (document.getElementById('filterMandal')   || {}).value || '';
+  var budget   = (document.getElementById('filterBudget')   || {}).value || '';
+  var size     = (document.getElementById('filterSize')     || {}).value || '';
+  var type     = (document.getElementById('filterType')     || {}).value || '';
+  var listings = document.getElementById('listings');
+  if (listings) listings.scrollIntoView({ behavior: 'smooth' });
+}
+function quickSearch(village) {
+  var inp = document.getElementById('heroSearchInput');
+  if (inp) inp.value = village;
+  heroSearch();
+}
+function useGPS() {
+  if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var inp = document.getElementById('heroSearchInput');
+    if (inp) inp.value = 'Near me (' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + ')';
+    heroSearch();
+  }, function(){ alert('Could not get location.'); });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('heroSearchInput');
+  if (inp) inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') heroSearch(); });
+});
+
+// ── TYPEWRITER ANIMATION ───────────────────────────────────
+(function() {
+  var problemText  = "Buyers and sellers in villages and developing areas lose trust, time, and money due to a deeply flawed property market dominated by middlemen, fake data, and zero transparency.";
+  var solutionText = "Own Your Plot was built to fix exactly this—with technology, not more brokers.";
+  var badWords  = ['lose trust','time, and money','middlemen','fake data','zero transparency','deeply flawed'];
+  var goodWords = ['Own Your Plot','technology'];
+
+  function highlight(str) {
+    var result = str;
+    badWords.forEach(function(w){
+      if (str.includes(w)) result = result.replace(w, '<span style="color:#E06060;font-weight:500">'+w+'</span>');
+    });
+    goodWords.forEach(function(w){
+      if (str.includes(w)) result = result.replace(w, '<span style="color:var(--sand);font-weight:500">'+w+'</span>');
+    });
+    return result;
+  }
+
+  var typed='', pi=0, si=0, phase='problem';
+
+  function typeChar() {
+    var problemEl  = document.getElementById('stmtProblem');
+    var cursorEl   = document.getElementById('stmtCursor');
+    var solutionEl = document.getElementById('stmtSolution');
+    var fixEl      = document.getElementById('stmtFix');
+    if (!problemEl) return;
+
+    if (phase === 'problem') {
+      if (pi < problemText.length) {
+        typed += problemText[pi++];
+        problemEl.innerHTML = highlight(typed);
+        var c = problemText[pi-1];
+        var delay = (c===',' || c==='.') ? 180 : c===' ' ? 28 : Math.random()*22+18;
+        setTimeout(typeChar, delay);
+      } else {
+        cursorEl.style.display = 'none';
+        phase = 'solution';
+        setTimeout(startSolution, 700);
+      }
+    }
+  }
+
+  function startSolution() {
+    var sol = document.getElementById('stmtSolution');
+    if (sol) { sol.classList.add('visible'); setTimeout(typeSolution, 400); }
+  }
+
+  function typeSolution() {
+    var fixEl = document.getElementById('stmtFix');
+    if (!fixEl) return;
+    if (si < solutionText.length) {
+      fixEl.innerHTML = highlight(solutionText.slice(0, ++si));
+      var c = solutionText[si-1];
+      var delay = (c==='—'||c===',') ? 160 : c===' ' ? 30 : Math.random()*20+16;
+      setTimeout(typeSolution, delay);
+    } else {
+      setTimeout(restartLoop, 6000);
+    }
+  }
+
+  function restartLoop() {
+    var problemEl  = document.getElementById('stmtProblem');
+    var fixEl      = document.getElementById('stmtFix');
+    var solutionEl = document.getElementById('stmtSolution');
+    var cursorEl   = document.getElementById('stmtCursor');
+    if (!problemEl) return;
+    [problemEl, fixEl].forEach(function(el){ el.style.opacity='0'; el.style.transition='opacity 0.5s'; });
+    solutionEl.style.opacity='0'; solutionEl.style.transform='translateY(10px)';
+    setTimeout(function(){
+      typed=''; pi=0; si=0; phase='problem';
+      problemEl.innerHTML=''; fixEl.innerHTML='';
+      problemEl.style.opacity='1'; fixEl.style.opacity='1';
+      solutionEl.classList.remove('visible');
+      solutionEl.style.opacity=''; solutionEl.style.transform='';
+      cursorEl.style.display='';
+      setTimeout(typeChar, 300);
+    }, 600);
+  }
+
+  var started = false;
+  var obs2 = new IntersectionObserver(function(entries){
+    if (entries[0].isIntersecting && !started) { started=true; setTimeout(typeChar,400); }
+  }, { threshold: 0.25 });
+  document.addEventListener('DOMContentLoaded', function() {
+    var sec = document.getElementById('problem');
+    if (sec) obs2.observe(sec); else setTimeout(typeChar, 800);
+  });
+})();
+
+// ── LISTING CARD HOVER ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.listing-card').forEach(function(card) {
+    var pin = card.querySelector('.map-pin');
+    if (!pin) return;
+    card.addEventListener('mouseenter', function(){ pin.style.animationPlayState='paused'; });
+    card.addEventListener('mouseleave', function(){ pin.style.animationPlayState='running'; });
+  });
+});
+
+</script><script>
+  // ── HERO SEARCH ──────────────────────────────────────────────
+  function heroSearch() {
+    const q        = document.getElementById('heroSearchInput').value.trim();
+    const district = document.getElementById('filterDistrict').value;
+    const mandal   = document.getElementById('filterMandal').value;
+    const budget   = document.getElementById('filterBudget').value;
+    const size     = document.getElementById('filterSize').value;
+    const type     = document.getElementById('filterType').value;
+
+    // Build query string (ready for real API)
+    const params = new URLSearchParams();
+    if (q)        params.set('q', q);
+    if (district) params.set('district', district);
+    if (mandal)   params.set('mandal', mandal);
+    if (budget)   { const [min,max] = budget.split('-'); params.set('min_price', min); params.set('max_price', max); }
+    if (size)     { const [min,max] = size.split('-');   params.set('min_area', min); params.set('max_area', max); }
+    if (type)     params.set('listing_type', type);
+
+    // For demo: scroll to listings section and highlight it
+    const listingsSection = document.getElementById('listings');
+    if (listingsSection) {
+      listingsSection.scrollIntoView({ behavior: 'smooth' });
+
+      // Flash the section border
+      listingsSection.style.transition = 'outline 0.3s';
+      listingsSection.style.outline = '1px solid rgba(232,132,58,0.4)';
+      setTimeout(() => listingsSection.style.outline = '', 1200);
+    }
+
+    // In production: fetch(`/plots?${params}`) then render results
+    console.log('[Search] Query:', params.toString());
+  }
+
+  function quickSearch(village) {
+    document.getElementById('heroSearchInput').value = village;
+    heroSearch();
+  }
+
+  function useGPS() {
+    if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+    const btn = document.querySelector('.quick-tag:last-child');
+    const orig = btn.textContent;
+    btn.textContent = '⏳ Locating…';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        btn.textContent = '✅ Located!';
+        document.getElementById('heroSearchInput').value =
+          `Near me (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+        // In production: fetch(`/plots/nearby?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+        heroSearch();
+        setTimeout(() => btn.textContent = orig, 2000);
+      },
+      () => {
+        btn.textContent = orig;
+        alert('Could not get location. Please allow location access.');
+      }
+    );
+  }
+
+  // Allow Enter key to trigger search
+  document.getElementById('heroSearchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') heroSearch();
+  });
+
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => {
+      if (el.isIntersecting) {
+        el.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Nav background on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      nav.style.background = 'rgba(26,18,8,0.97)';
+    } else {
+      nav.style.background = 'rgba(26,18,8,0.85)';
+    }
+  });
+
+  // Animate plot cells staggered
+  document.querySelectorAll('.plot-cell').forEach((cell, i) => {
+    cell.style.animationDelay = `${0.1 + i * 0.05}s`;
+  });
+
+  // Hover interactivity on listing cards
+  document.querySelectorAll('.listing-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      card.querySelector('.map-pin').style.animationPlayState = 'paused';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.querySelector('.map-pin').style.animationPlayState = 'running';
+    });
+  });
+
+  // ── ANIMATED TYPEWRITER STATEMENT ─────────────────────────────
+  (function() {
+    const problemText = "Buyers and sellers in villages and developing areas lose trust, time, and money due to a deeply flawed property market dominated by middlemen, fake data, and zero transparency.";
+    const solutionText = "Own Your Plot was built to fix exactly this—with technology, not more brokers.";
+
+    // Words to highlight in red/sand as they appear
+    const badWords   = ['lose trust', 'time, and money', 'middlemen', 'fake data', 'zero transparency', 'deeply flawed'];
+    const goodWords  = ['Own Your Plot', 'technology'];
+
+    const problemEl  = document.getElementById('stmtProblem');
+    const cursorEl   = document.getElementById('stmtCursor');
+    const solutionEl = document.getElementById('stmtSolution');
+    const fixEl      = document.getElementById('stmtFix');
+    const cursorGr   = document.getElementById('stmtCursorGreen');
+
+    if (!problemEl) return;
+
+    let typed = '';
+    let pi = 0;
+    let si = 0;
+    let phase = 'problem'; // problem | pause | erase | solution
+
+    function applyHighlights(str) {
+      let result = str;
+      // Apply bad word highlights
+      badWords.forEach(w => {
+        if (str.includes(w)) {
+          result = result.replace(w, `<span style="color:#E06060;font-weight:500">${w}</span>`);
+        }
+      });
+      goodWords.forEach(w => {
+        if (str.includes(w)) {
+          result = result.replace(w, `<span style="color:var(--sand);font-weight:500">${w}</span>`);
+        }
+      });
+      return result;
+    }
+
+    function typeChar() {
+      if (phase === 'problem') {
+        if (pi < problemText.length) {
+          typed += problemText[pi++];
+          problemEl.innerHTML = applyHighlights(typed);
+          // Vary speed slightly for organic feel
+          const delay = problemText[pi - 1] === ',' || problemText[pi - 1] === '.' ? 180
+                      : problemText[pi - 1] === ' ' ? 28
+                      : Math.random() * 22 + 18;
+          setTimeout(typeChar, delay);
+        } else {
+          // Done typing problem — pause then show solution
+          cursorEl.style.display = 'none';
+          phase = 'solution';
+          setTimeout(startSolution, 700);
+        }
+      }
+    }
+
+    function startSolution() {
+      solutionEl.classList.add('visible');
+      setTimeout(typeSolution, 400);
+    }
+
+    function typeSolution() {
+      if (si < solutionText.length) {
+        let partialFix = solutionText.slice(0, si + 1);
+        si++;
+        fixEl.innerHTML = applyHighlights(partialFix);
+        const c = solutionText[si - 1];
+        const delay = c === '—' || c === ',' ? 160
+                    : c === ' ' ? 30
+                    : Math.random() * 20 + 16;
+        setTimeout(typeSolution, delay);
+      } else {
+        // All done — blink cursor stays, then loop after long pause
+        setTimeout(restartLoop, 6000);
+      }
+    }
+
+    function restartLoop() {
+      // Fade out both, then retype
+      problemEl.style.transition = 'opacity 0.5s';
+      fixEl.style.transition      = 'opacity 0.5s';
+      problemEl.style.opacity = '0';
+      fixEl.style.opacity     = '0';
+      solutionEl.style.transition = 'opacity 0.5s, transform 0.5s';
+      solutionEl.style.opacity    = '0';
+      solutionEl.style.transform  = 'translateY(10px)';
+
+      setTimeout(() => {
+        typed = ''; pi = 0; si = 0;
+        phase = 'problem';
+        problemEl.innerHTML = '';
+        fixEl.innerHTML     = '';
+        problemEl.style.opacity  = '1';
+        fixEl.style.opacity      = '1';
+        solutionEl.classList.remove('visible');
+        solutionEl.style.opacity   = '';
+        solutionEl.style.transform = '';
+        cursorEl.style.display = '';
+        // Restart after a beat
+        setTimeout(typeChar, 300);
+      }, 600);
+    }
+
+    // Start when section scrolls into view
+    const section = document.getElementById('problem');
+    let started = false;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !started) {
+        started = true;
+        setTimeout(typeChar, 400);
+      }
+    }, { threshold: 0.25 });
+    if (section) obs.observe(section);
+    else setTimeout(typeChar, 800); // fallback
+  })();
+
+
+
+/* ══════════════════════════════════════════════════════
+   OWN YOUR PLOT — AUTH GATE + SUBSCRIPTION SYSTEM
+   NexTex.ai | Venu Gopagoni & Ankith Ganta
+══════════════════════════════════════════════════════ */
+
+// ── STATE ──────────────────────────────────────────────
+const OYP = {
+  currentUser: null,
+  selectedRole: 'buyer',
+  API: 'http://localhost:5000', // Change to production URL
+
+  // Persist session
+  save(user, token) {
+    try {
+      localStorage.setItem('oyp_user',  JSON.stringify(user));
+      localStorage.setItem('oyp_token', token);
+    } catch(e) {}
+    this.currentUser = user;
+  },
+  load() {
+    try {
+      const u = localStorage.getItem('oyp_user');
+      if (u) { this.currentUser = JSON.parse(u); return true; }
+    } catch(e) {}
+    return false;
+  },
+  clear() {
+    try { localStorage.removeItem('oyp_user'); localStorage.removeItem('oyp_token'); } catch(e) {}
+    this.currentUser = null;
+  },
+  token() {
+    try { return localStorage.getItem('oyp_token') || ''; } catch(e) { return ''; }
+  }
+};
+
+// ── HELPERS ────────────────────────────────────────────
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+function clearAuthError() {
+  document.getElementById('authError').classList.remove('show');
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="auth-spinner"></span>Please wait…'
+    : (btnId === 'loginBtn' ? 'Sign In to Own Your Plot' : 'Create Free Account');
+}
+
+function togglePass(inputId, icon) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; icon.textContent = '🙈'; }
+  else                          { inp.type = 'password'; icon.textContent = '👁'; }
+}
+
+function switchTab(tab) {
+  clearAuthError();
+  document.getElementById('tabLogin').classList.toggle('active',  tab === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+  document.getElementById('panelLogin').classList.toggle('active',  tab === 'login');
+  document.getElementById('panelSignup').classList.toggle('active', tab === 'signup');
+}
+
+function selectRole(el) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  OYP.selectedRole = el.dataset.role;
+}
+
+// ── UNLOCK SITE ────────────────────────────────────────
+function unlockSite(user) {
+  const overlay = document.getElementById('authOverlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.style.display = 'none', 500);
+
+  document.getElementById('siteContent').classList.add('unlocked');
+
+  // Hide guest banner
+  document.getElementById('guestBanner').classList.remove('show');
+
+  // Update nav
+  updateNav(user);
+
+  // Show subscription toast after 2.5s if on free plan
+  if (user && user.plan === 'free') {
+    setTimeout(showSubNotif, 2500);
+    // Show again every 5 min if still on free plan
+    setInterval(() => {
+      if (OYP.currentUser && OYP.currentUser.plan === 'free') showSubNotif();
+    }, 300000);
+  }
+}
+
+function updateNav(user) {
+  const navCta = document.querySelector('.nav-cta');
+  if (!navCta || !user) return;
+  const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  navCta.innerHTML = `
+    <div class="nav-user-pill" onclick="showUserMenu()">
+      <div class="nav-avatar">${initials}</div>
+      <div class="nav-user-info">
+        <span class="nav-user-name">${user.name.split(' ')[0]}</span>
+        <span class="nav-user-plan">${user.plan === 'free' ? 'Free Plan' : '⭐ ' + user.plan}</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="doLogout()" style="font-size:0.78rem;padding:7px 16px">Sign Out</button>
+  `;
+}
+
+// ── DEMO CREDENTIALS (always work — no backend needed) ──
+const DEMO_USERS = {
+  'admin@ownplot.in':      { id:1,  name:'Platform Admin',       role:'admin',     plan:'developer', password:'Test@1234!' },
+  'priya@example.com':     { id:5,  name:'Priya Sharma',         role:'buyer',     plan:'premium',   password:'Test@1234!' },
+  'ravi@example.com':      { id:2,  name:'Ravi Kumar',           role:'owner',     plan:'premium',   password:'Test@1234!' },
+  'suresh@example.com':    { id:3,  name:'Suresh Babu',          role:'owner',     plan:'free',      password:'Test@1234!' },
+  'greendev@example.com':  { id:8,  name:'GreenCity Developers', role:'developer', plan:'developer', password:'Test@1234!' },
+  'kiran@example.com':     { id:6,  name:'Kiran Kumar',          role:'buyer',     plan:'free',      password:'Test@1234!' },
+  'demo@ownplot.in':       { id:99, name:'Demo User',            role:'buyer',     plan:'free',      password:'demo1234'  },
+};
+
+// ── LOGIN ─────────────────────────────────────────────
+async function doLogin() {
+  clearAuthError();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('loginPass').value;
+
+  if (!email || !pass) { showAuthError('Please enter your email and password.'); return; }
+
+  setLoading('loginBtn', true);
+  await new Promise(r => setTimeout(r, 550));
+
+  // 1. Check known demo users first
+  const demo = DEMO_USERS[email];
+  if (demo) {
+    if (demo.password !== pass) {
+      setLoading('loginBtn', false);
+      showAuthError('Wrong password. Try: Test@1234!');
+      return;
+    }
+    const user = { id: demo.id, name: demo.name, email, role: demo.role, plan: demo.plan };
+    OYP.save(user, 'demo-token-' + demo.id);
+    setLoading('loginBtn', false);
+    unlockSite(user);
+    return;
+  }
+
+  // 2. Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setLoading('loginBtn', false);
+    showAuthError('Please enter a valid email address.');
+    return;
+  }
+
+  // 3. Validate password length
+  if (pass.length < 6) {
+    setLoading('loginBtn', false);
+    showAuthError('Password must be at least 6 characters.');
+    return;
+  }
+
+  // 4. Try real API (optional)
+  try {
+    const res = await fetch(`${OYP.API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+      signal: AbortSignal.timeout(2500)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      OYP.save(data.data.user, data.data.access_token);
+      setLoading('loginBtn', false);
+      unlockSite(data.data.user);
+      return;
+    }
+  } catch(e) { /* API offline — use demo fallback */ }
+
+  // 5. Any valid email + 6+ char password = generic demo login
+  const namePart = email.split('@')[0]
+    .replace(/[._-]/g, ' ')
+    .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const user = { id: Math.floor(Math.random()*9000)+100, name: namePart, email, role: 'buyer', plan: 'free' };
+  OYP.save(user, 'demo-token-generic');
+  setLoading('loginBtn', false);
+  unlockSite(user);
+}
+
+// ── REGISTER ──────────────────────────────────────────
+async function doRegister() {
+  clearAuthError();
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const phone = document.getElementById('regPhone').value.trim();
+  const pass  = document.getElementById('regPass').value;
+
+  if (!name)  { showAuthError('Please enter your full name.'); return; }
+  if (!email) { showAuthError('Please enter your email address.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthError('Please enter a valid email address.'); return; }
+  if (!pass || pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+  setLoading('regBtn', true);
+  await new Promise(r => setTimeout(r, 700));
+
+  // Try real API
+  try {
+    const res = await fetch(`${OYP.API}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, password: pass, role: OYP.selectedRole }),
+      signal: AbortSignal.timeout(2500)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      OYP.save(data.data.user, data.data.access_token);
+      setLoading('regBtn', false);
+      unlockSite(data.data.user);
+      return;
+    }
+  } catch(e) { /* API offline */ }
+
+  // Demo: create account locally
+  const user = { id: Math.floor(Math.random()*9000)+100, name, email, role: OYP.selectedRole, plan: 'free' };
+  OYP.save(user, 'demo-token-new');
+  setLoading('regBtn', false);
+  unlockSite(user);
+}
+
+
+// ── GUEST ACCESS ───────────────────────────────────────
+function guestAccess() {
+  // Unlock site but show guest banner + aggressive sub notification
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('siteContent').classList.add('unlocked');
+  document.getElementById('guestBanner').classList.add('show');
+
+  // Show subscription toast immediately for guests
+  setTimeout(showSubNotif, 1500);
+}
+
+// ── LOGOUT ─────────────────────────────────────────────
+function doLogout() {
+  OYP.clear();
+  location.reload();
+}
+
+function showUserMenu() {
+  // Could expand to a dropdown — for now just link to pricing
+  goToPricing();
+}
+
+// ── SUBSCRIPTION TOAST ─────────────────────────────────
+function showSubNotif() {
+  const el = document.getElementById('subNotif');
+  if (!el) return;
+  el.classList.add('show');
+}
+function closeSubNotif() {
+  document.getElementById('subNotif').classList.remove('show');
+}
+function goToPricing() {
+  closeSubNotif();
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('siteContent').classList.add('unlocked');
+  const pricing = document.getElementById('pricing');
+  if (pricing) {
+    pricing.scrollIntoView({ behavior: 'smooth' });
+    // Glow the popular card
+    const popular = document.querySelector('.price-card.popular');
+    if (popular) {
+      popular.style.transition = 'box-shadow 0.4s ease';
+      setTimeout(() => { popular.style.boxShadow = '0 0 0 3px var(--mint), 0 0 40px rgba(74,124,89,0.4)'; }, 600);
+      setTimeout(() => { popular.style.boxShadow = ''; }, 2800);
+    }
+  }
+}
+
+// ── KEYBOARD SUPPORT ───────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const overlay = document.getElementById('authOverlay');
+    if (overlay && overlay.style.display !== 'none' && !overlay.classList.contains('hidden')) {
+      const loginActive = document.getElementById('panelLogin').classList.contains('active');
+      loginActive ? doLogin() : doRegister();
+    }
+  }
+});
+
+// ── INIT ON PAGE LOAD ──────────────────────────────────
+(function init() {
+  // 1. Already has a saved session — unlock immediately
+  if (OYP.load() && OYP.currentUser) {
+    document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('siteContent').classList.add('unlocked');
+    updateNav(OYP.currentUser);
+    if (OYP.currentUser.plan === 'free') {
+      setTimeout(showSubNotif, 3000);
+    }
+    return;
+  }
+
+  // 2. Pre-fill demo credentials so user just clicks Sign In
+  const emailInput = document.getElementById('loginEmail');
+  const passInput  = document.getElementById('loginPass');
+  if (emailInput) emailInput.value = 'demo@ownplot.in';
+  if (passInput)  passInput.value  = 'demo1234';
+
+  // Highlight both fields with a gentle pulse to draw attention
+  setTimeout(() => {
+    [emailInput, passInput].forEach(el => {
+      if (!el) return;
+      el.style.transition    = 'border-color 0.4s ease, background 0.4s ease';
+      el.style.borderColor   = 'rgba(212,169,106,0.6)';
+      el.style.background    = 'rgba(212,169,106,0.09)';
+    });
+    setTimeout(() => {
+      [emailInput, passInput].forEach(el => {
+        if (!el) return;
+        el.style.borderColor = '';
+        el.style.background  = '';
+      });
+    }, 1800);
+  }, 600);
+})();
+
+
+// ── FILL DEMO CREDENTIALS ──────────────────────────────
+function fillDemo(email, pass) {
+  document.getElementById('loginEmail
